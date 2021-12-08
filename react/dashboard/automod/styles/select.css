@@ -4,8 +4,8 @@
 .automod-selector .Select.is-focused:not(.is-open) > .Select-control,
 .automod-selector .Select-menu-outer,
 .automod-selector .Select-option {
-	background: #0C121D;
-	background-color: #0C121D;
+	background: #2A2B30;
+	background-color: #2A2B30;
 }
 
 .automod-toggles .automod-selector.control.rich-select {
@@ -19,19 +19,7 @@
 .automod-selector .Select.is-open > .Select-control,
 .automod-selector .Select.is-focused > .Select-control,
 .automod-selector .Select.is-focused:not(.is-open) > .Select-control {
-	/* border-color: #0CE9D3; */
-	border-color: rgba(12,233,211, 0.4);
-}
-
-.Select.is-open > .Select-control,
-.Select-menu-outer {
-	border-color: rgba(51, 111, 213, 0.5);
-}
-
-.Select-menu-outer,
-.Select-option {
-	border-color: rgba(51, 111, 213, 0.5);
-	color: #eee;
+	border-color: #555;
 }
 
 @media (max-width: 1200px) {

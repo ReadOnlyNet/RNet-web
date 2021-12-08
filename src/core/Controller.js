@@ -1,10 +1,8 @@
 'use strict';
 
 const superagent = require('superagent');
-const axios = require('axios');
 const config = require('./config');
-const logger = require('./logger').get('Controller');
-const redis = require('./redis');
+const logger = require('./logger');
 const { models } = require('./models');
 
 const perms = config.permissions;
@@ -12,12 +10,7 @@ const perms = config.permissions;
 class Controller {
 	constructor(bot) {
 		this.bot = bot;
-		this.client = bot.client;
-	}
-
-	renderError(req, res, code) {
-		res.locals.stylesheets.push('/css/error.css');
-		return res.status(code).render(`errors/${code}`, { layout: 'error' });
+		this.client = bot.snowClient;
 	}
 
 	/**
@@ -54,9 +47,6 @@ class Controller {
 			this.apiRequest(token, '/users/@me'),
 			this.apiRequest(token, '/users/@me/guilds'),
 		]).then(([user, guilds]) => {
-
-			req.session.allGuilds = guilds;
-
 			guilds = guilds.filter(g => (g.owner === true || !!(g.permissions & perms.manageServer) || !!(g.permissions & perms.administrator)))
 				.map(g => {
 					if (!req.params.id || g.id !== req.params.id) return g;
@@ -72,15 +62,15 @@ class Controller {
 				req.session.dashAccess = res.locals.dashAccess = true;
 			}
 
-			if (config.global.overseers && config.global.overseers.includes(user.id)) {
-				req.session.isAdmin = res.locals.isAdmin = true;
+			if (config.overseers && config.overseers.includes(user.id)) {
+				req.session.isAdmin = true;
 			}
 
 			req.session.user = res.locals.user = user;
 			req.session.guilds = res.locals.guilds = guilds;
 			req.session.lastAuth = Date.now();
 
-			return next ? next() : true;
+			return next();
 		}).catch(err => {
 			if (err === 401) {
 				req.session.destroy();
@@ -88,16 +78,13 @@ class Controller {
 			}
 
 			res.locals.error = err;
-			return next ? next() : true;
+			return next();
 		});
 	}
 
 	update(id, update) {
-		return new Promise((resolve, reject) => models.Server.collection.updateOne({ _id: id }, update)
-			.then(() => {
-				redis.publish('guildConfig', id);
-				resolve();
-			})
+		return new Promise((resolve, reject) => models.Server.collection.update({ _id: id }, update)
+			.then(resolve)
 			.catch(err => {
 				logger.error(err);
 				return reject(err);
@@ -117,25 +104,6 @@ class Controller {
 
 	log(id, message) {
 		return logger.info(`[Web] Server: ${id} ${message}`);
-	}
-
-	/**
-	 * Post to a discord webhook
-	 * @param {String} webhook The webhook to post to
-	 * @param {Object} payload The json payload to send
-	 * @return {Promise}
-	 */
-	postWebhook(webhook, payload) {
-		return new Promise((resolve, reject) =>
-			axios.post(webhook, {
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				...payload
-			})
-			.then(resolve)
-			.catch(reject));
 	}
 }
 

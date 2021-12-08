@@ -1,9 +1,8 @@
 'use strict';
 
 const Controller = require('../../core/Controller');
-const logger = require('../../core/logger').get('MessageEmbed');
+const logger = require('../../core/logger');
 const { models } = require('../../core/models');
-const config = require('../../core/config');
 
 class MessageEmbed extends Controller {
 	constructor(bot) {
@@ -39,15 +38,7 @@ class MessageEmbed extends Controller {
 			return res.status(400).send('Missing required message.');
 		}
 
-		const guildConfig = await config.guilds.fetch(req.params.id);
-		if (!guildConfig) {
-			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
-		}
-
+		const { snowClient: client } = bot;
 		let { name, channel, embed } = req.body.message;
 
 		if (!name || !channel || !embed) {
@@ -55,7 +46,7 @@ class MessageEmbed extends Controller {
 		}
 
 		try {
-			const message = await this.client.createMessage(channel, { embed });
+			const message = await client.channel.createMessage(channel, { embed });
 			const doc = new models.MessageEmbed(req.body.message);
 			doc.message = message.id;
 			await doc.save();
@@ -74,20 +65,16 @@ class MessageEmbed extends Controller {
 			return res.status(400).send('Missing required message.');
 		}
 
-		const guildConfig = await config.guilds.fetch(req.params.id);
-		if (!guildConfig) {
-			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
-		}
-
+		const { snowClient: client } = bot;
 		const doc = req.body.message;
 		const channel = typeof doc.channel === 'object' ? doc.channel.id : doc.channel;
 
+		if (typeof channel !== 'string') {
+			return res.status(500).send('Something went wrong, please try refreshing.');
+		}
+
 		try {
-			await this.client.deleteMessage(channel, doc.message);
+			await client.channel.deleteMessage(channel, doc.message);
 		} catch (err) {
 			if (err.response && err.response.status !== 404) {
 				logger.error(err);
@@ -105,41 +92,32 @@ class MessageEmbed extends Controller {
 			this.weblog(req, req.params.id, req.session.user, 'Deleted Message Embed.');
 			return res.send('Deleted Message Embed.');
 		} catch (err) {
-			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
 
 	async edit(bot, req, res) {
+		const { snowClient: client } = bot;
+
 		if (!req.body.message || !req.body.message._id) {
 			return res.status(400).send('Invalid message.');
-		}
-
-		const guildConfig = await config.guilds.fetch(req.params.id);
-		if (!guildConfig) {
-			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
 		}
 
 		const message = req.body.message;
 		let msg;
 
 		try {
-			msg = await this.client.editMessage(message.channel, message.message, { embed: message.embed });
+			msg = await client.channel.editMessage(message.channel, message.message, { embed: message.embed });
 		} catch (err) {
 			logger.error(err);
-			// 10008 === Unknown Message
-			if (err.response && err.response.code !== 10008) {
+			if (err.response && err.response !== 404) {
 				return res.status(500).send('Error editing message in Discord.');
 			}
 		}
 
 		if (!msg) {
 			try {
-				msg = await this.client.createMessage(message.channel, { embed: message.embed });
+				msg = await client.channel.createMessage(message.channel, { embed: message.embed });
 			} catch (err) {
 				logger.error(err);
 				return res.status(500).send('Error sending message in Discord.');

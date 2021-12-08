@@ -1,7 +1,7 @@
 'use strict';
 
 const Collection = require('./Collection');
-const logger = require('../core/logger').get('GuildCollection');
+const logger = require('../core/logger');
 const { Server } = require('../core/models').models;
 
 /**

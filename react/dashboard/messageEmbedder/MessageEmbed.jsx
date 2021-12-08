@@ -8,7 +8,6 @@ export default class MessageEmbed extends React.Component {
 		message: this.defaultMessage,
 		channels: [],
 		selectedOption: false,
-		isCloned: false,
 	};
 
 	get defaultMessage() {
@@ -19,29 +18,17 @@ export default class MessageEmbed extends React.Component {
 			name   : '',
 			time   : new Date(),
 			embed  : false,
-		};
+		}
 	}
 
 	componentWillMount() {
-		let props = { ...this.props };
-		if (this.props.getCloned) {
-			props.message = this.props.getCloned();
-			props.isCloned = true;
-		}
-		console.log(props);
-		this.updateState(props);
+		this.updateState(this.props);
 	}
 
 	componentWillReceiveProps(props) {
-		let message;
-		if (!props.messsage && this.state.isCloned) {
-			message = this.defaultMessage;
-		} else {
-			message = props.message || this.state.message || this.defaultMessage
-		}
 		this.updateState({
 			channels: props.channels || this.state.channels,
-			message: message,
+			message: props.message || this.state.message || this.defaultMessage,
 		});
 	}
 
@@ -60,7 +47,6 @@ export default class MessageEmbed extends React.Component {
 			roles: props.roles || [],
 			selectedOption: selectedOption || false,
 			message,
-			isCloned: props.isCloned || false,
 		});
 	}
 
@@ -117,14 +103,8 @@ export default class MessageEmbed extends React.Component {
 		}
 	}
 
-	cloneEmbed = async () => {
-		if (this.props.onClone) {
-			this.props.onClone(this.state.message);
-		}
-	}
-
 	render() {
-		const { message, roles, selectedOption, isCloned } = this.state;
+		const { message, roles, selectedOption } = this.state;
 		const channels = this.state.channels.filter(c => c.type === 0);
 		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
 
@@ -136,14 +116,8 @@ export default class MessageEmbed extends React.Component {
 			}
 		});
 
-		const channelDisabled = !!(message && message.embed && !isCloned);
+		const channelDisabled = !!(message && message.embed);
 		const channelOption = (messageChannel && { value: messageChannel.id, label: messageChannel.name }) || selectedOption;
-
-		const showIcon = (
-			<span className='icon is-link'>
-				<i className='fa fa-plus-circle'></i>
-			</span>
-		);
 
 		return (<div className='message-embedder'>
 			<div className='settings-content is-flex'>
@@ -169,7 +143,7 @@ export default class MessageEmbed extends React.Component {
 			</div>
 			<div className='settings-content'>
 				<h3 className='title is-5'>Embed</h3>
-				{message && message.embed && !isCloned ?
+				{message && message.embed ?
 					(<EmbedBuilder
 						roles={roles}
 						channels={channels}
@@ -177,18 +151,14 @@ export default class MessageEmbed extends React.Component {
 						isPremium={this.props.data.isPremium}
 						deleteButton={true}
 						onSave={this.editEmbed}
-						onDelete={this.deleteEmbed}
-						onClone={this.cloneEmbed}
-						cloneButton={true} />) :
+						onDelete={this.deleteEmbed} />) :
 					(<EmbedBuilder
 						roles={roles}
 						channels={channels}
-						embed={(isCloned && message) ? message.embed : -1}
 						isPremium={this.props.data.isPremium}
 						cancelButton={true}
 						onCancel={this.cancelEmbed}
-						onSave={this.createEmbed}
-						cloneButton={false} />)}
+						onSave={this.createEmbed} />)}
 			</div>
 		</div>);
 	};

@@ -21,6 +21,15 @@
 				</div>
 			{{/each}}
 		</div>
+		<h1 class="title">RNet <strong>Contributors</strong></h1>
+		<div class="team-member-list">
+			{{#each team.contributors}}
+				<div class="team-member">
+					<div class="team-member-picture" style="background-image: url({{this.avatar}});"></div>
+					<h4 class="team-member-username">{{this.name}}</h4>
+				</div>
+			{{/each}}
+		</div>
 		<h1 class="title">Discord <strong>Moderators</strong></h1>
 		<div class="team-member-list">
 			{{#each team.moderators}}
@@ -42,15 +51,6 @@
 		<h1 class="title">Discord <strong>Support</strong></h1>
 		<div class="team-member-list">
 			{{#each team.support}}
-				<div class="team-member">
-					<div class="team-member-picture" style="background-image: url({{this.avatar}});"></div>
-					<h4 class="team-member-username">{{this.name}}</h4>
-				</div>
-			{{/each}}
-		</div>
-		<h1 class="title">RNet <strong>Contributors</strong></h1>
-		<div class="team-member-list">
-			{{#each team.contributors}}
 				<div class="team-member">
 					<div class="team-member-picture" style="background-image: url({{this.avatar}});"></div>
 					<h4 class="team-member-username">{{this.name}}</h4>

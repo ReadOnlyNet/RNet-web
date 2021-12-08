@@ -5,7 +5,7 @@ const Controller = require('../core/Controller');
 const timezones = require('../timezones.json');
 const { models } = require('../core/models');
 const config = require('../core/config');
-const logger = require('../core/logger').get('Server');
+const logger = require('../core/logger');
 const utils = require('../core/utils');
 const { Queue } = models;
 
@@ -34,19 +34,14 @@ class Server extends Controller {
 				],
 				handler: this.beforeServer.bind(this),
 			},
-			// server: {
-			// 	method: 'get',
-			// 	uri: '/server/:id/:page?/:tab?',
-			// 	handler: (_, req, res) => res.redirect(`/manage/${req.params.id}`),
-			// },
+			server: {
+				method: 'get',
+				uri: '/server/:id/:page?/:tab?',
+				handler: (_, req, res) => res.redirect(`/manage/${req.params.id}`),
+			},
 			manage: {
 				method: 'get',
 				uri: '/manage/:id/:page?/:tab?',
-				handler: this.server.bind(this),
-			},
-			moduleTab: {
-				method: 'get',
-				uri: '/manage/:id/modules/:page?/:tab?',
 				handler: this.server.bind(this),
 			},
 			playlist: {
@@ -75,7 +70,7 @@ class Server extends Controller {
 		}
 
 		res.locals.externalStylesheets = ['https://cdnjs.cloudflare.com/ajax/libs/hint.css/2.5.0/hint.min.css'];
-		res.locals.stylesheets = ['/css/server.css'];
+		res.locals.stylesheets = ['server'];
 
 		if (req.session.isAdmin) {
 			res.locals = Object.assign(res.locals, req.session);
@@ -90,16 +85,7 @@ class Server extends Controller {
 				guild = guilds.find(g => g.id === req.params.id);
 
 				if (!guild && (req.session.isAdmin || req.session.dashAccess)) {
-					try {
-						guild = await this.client.getRESTGuild(req.params.id);
-					} catch (err) {
-						if (err.code === 50001) {
-							return res.redirect('/account');
-						} else {
-							logger.error(err);
-							return res.redirect('/account');
-						}
-					}
+					guild = await this.client.guild.getGuild(req.params.id);
 				}
 
 				if (!guild) {
@@ -147,6 +133,8 @@ class Server extends Controller {
 	 * @param {Object} res Express response
 	 */
 	async server(bot, req, res) {
+		const { snowClient: client } = this.bot;
+
 		if (!req.session || !req.session.auth) return res.redirect('/');
 		if (!res.locals.isAdmin && !res.locals.isManager) return res.redirect('/');
 
@@ -170,9 +158,9 @@ class Server extends Controller {
 			return res.redirect(oauthRedirect);
 		}
 
-		if (guildConfig && config.isPremium && !config.isLocal) {
+		if (guildConfig && config.isPremium && !config.test && !config.staging) {
 			if (!guildConfig.isPremium) {
-				return res.redirect(`https://www.rnet.cf/manage/${req.params.id}`);
+				return res.redirect(`https://www.rnet.cf/server/${req.params.id}`);
 			}
 			try {
 				let globalConfig = await models.RNet.findOne().lean().exec();
@@ -182,16 +170,14 @@ class Server extends Controller {
 
 				if (globalConfig.premiumIgnored.includes(guild.id) ||
 					globalConfig.premiumIgnored.includes(req.session.user.id)) {
-						if (!req.session.dashAccess) {
-							return res.redirect(`https://www.rnet.cf/manage/${req.params.id}`);
-						}
+						return res.redirect(`https://www.rnet.cf/server/${req.params.id}`);
 				}
 			} catch (err) {
 				return res.status(500).send('Something went wrong.');
 			}
 		}
 
-		if (guildConfig && !config.isPremium && !config.isLocal) {
+		if (guildConfig && !config.isPremium && !config.test && !config.staging) {
 			if (guildConfig.isPremium) {
 				try {
 					let globalConfig = await models.RNet.findOne().lean().exec();
@@ -201,7 +187,7 @@ class Server extends Controller {
 
 					if (!globalConfig.premiumIgnored.includes(guild.id) ||
 						!globalConfig.premiumIgnored.includes(req.session.user.id)) {
-							return res.redirect(`https://premium.rnet.cf/manage/${req.params.id}`);
+							return res.redirect(`https://premium.dyno.gg/manage/${req.params.id}`);
 					}
 				} catch (err) {
 					return res.status(500).send('Something went wrong.');
@@ -209,24 +195,15 @@ class Server extends Controller {
 			}
 		}
 
-		let commands = config.commands,
+		let modules = config.modules,
+			commands = config.commands,
 			commandGroups = [],
 			mods = [];
 
-		try {
-			var [modules, restGuild, clientMember] = await Promise.all([
-				models.Module.find({ _state: config.state }).lean().exec(),
-				this.client.getRESTGuild(req.params.id),
-				this.client.getSelf(),
-			]);
-		} catch (err) {
-			if (err.code === 50001) {
-				return res.redirect(oauthRedirect);
-			} else {
-				logger.error(err);
-				return res.redirect('/account');
-			}
-		}
+		let [restGuild, clientMember] = await Promise.all([
+			client.guild.getGuild(req.params.id),
+			client.user.getSelf(),
+		]);
 
 		if (!restGuild) {
 			req.session.authServer = req.params.id;
@@ -293,24 +270,11 @@ class Server extends Controller {
 			.map(m => {
 				const moduleCopy = Object.assign({}, m);
 
-				let enabled = true;
-				const name = moduleCopy.module || moduleCopy.name;
-
-				if ((guildConfig.modules.hasOwnProperty(name) && guildConfig.modules[name] === false) ||
-					(!guildConfig.modules.hasOwnProperty(name) && moduleCopy.defaultEnabled === false)) {
-						enabled = false;
-				}
-
-				moduleCopy.enabled = enabled;
-				// moduleCopy.enabled = (guildConfig.modules && guildConfig.modules[moduleCopy.module] === true);
+				moduleCopy.enabled = (guildConfig.modules && guildConfig.modules[moduleCopy.module] === true);
 				moduleCopy.friendlyName = moduleCopy.friendlyName || moduleCopy.module;
 				moduleCopy.partial = `modules/${moduleCopy.module.toLowerCase()}`;
 				moduleCopy.partialId = moduleCopy.module.toLowerCase();
 				moduleCopy.needsPerms = false;
-
-				if (commands.find(c => c.module === moduleCopy.module)) {
-					moduleCopy.hasCommands = true;
-				}
 
 				if (moduleCopy.vipOnly && !guildConfig.isPremium) {
 					moduleCopy.hide = true;
@@ -436,11 +400,6 @@ class Server extends Controller {
 		res.locals.exactwords = guildConfig.automod ? guildConfig.automod.exactwords || [] : [];
 		// res.locals.timezones = timezones.zones;
 
-		let initials = res.locals.server.name.toString().match(/[!?#]|(?:\s|^)[\W\w]/ig);
-		if (!initials) {
-			initials = ['?'];
-		}
-
 		res.locals.dashboardConfig = {
 			isPremium: guildConfig.isPremium,
 			modules: res.locals.modules.map(m => {
@@ -457,15 +416,15 @@ class Server extends Controller {
 				iconURL: res.locals.server.iconURL,
 				initials: res.locals.server.iconURL ?
 					undefined :
-					initials
+					res.locals.server.name.match(/[!?#]|(?:\s|^)[a-z]/ig)
 						.slice(0, 4)
 						.join('')
 						.replace(/\s/g, '')
 						.toUpperCase(),
 			},
-			shardCount: config.global.shardCount,
-			globalwords: config.automod.badwords || [],
 		};
+
+		res.locals.enableCaesar = process.env.ENABLE_SERVER_LISTING;
 
 		return res.render('server', { layout: 'server' });
 	}
@@ -477,11 +436,9 @@ class Server extends Controller {
 	 * @param {Object} res Express response
 	 */
 	async playlist(bot, req, res) {
-		res.locals.stylesheets = ['/css/server.css'];
-
 		try {
 			var [guild, doc] = await Promise.all([
-				this.client.getRESTGuild(req.params.id),
+				this.client.guild.getGuild(req.params.id),
 				Queue.findOne({ guild: req.params.id }).lean().exec(),
 			]);
 		} catch (err) {

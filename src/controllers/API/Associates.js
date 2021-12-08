@@ -3,7 +3,7 @@
 const superagent = require('superagent');
 const Controller = require('../../core/Controller');
 const { models } = require('../../core/models');
-const logger = require('../../core/logger').get('Associates');
+const logger = require('../../core/logger');
 
 class Associates extends Controller {
 	constructor(bot) {
@@ -95,7 +95,7 @@ class Associates extends Controller {
 				return res.status(500).send('Something went wrong.');
 			}
 
-			const data = Object.assign({}, req.body, { banner: `https://cdn.rnet.cf/${req.file.key}` });
+			const data = Object.assign({}, req.body, { banner: `https://cdn.dyno.gg/${req.file.key}` });
 
 			try {
 				var globalConfig = await this.getConfig();
@@ -167,7 +167,7 @@ class Associates extends Controller {
 			const associate = globalConfig.associates[index];
 
 			if (req.file) {
-				data = Object.assign({}, req.body, { banner: `https://cdn.rnet.cf/${req.file.key}` });
+				data = Object.assign({}, req.body, { banner: `https://cdn.dyno.gg/${req.file.key}` });
 			} else {
 				data = Object.assign({}, req.body, { banner: associate.banner });
 			}

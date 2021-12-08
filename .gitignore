@@ -35,7 +35,6 @@ node_modules
 *.db
 
 .env
-.env*
 private
 .idea
 .vscode
@@ -47,6 +46,5 @@ build
 package-lock.json
 yarn.lock
 public/js/react/
-public/css/
 RNet-web.iml
 *.map

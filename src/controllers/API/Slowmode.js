@@ -34,15 +34,6 @@ class Slowmode extends Controller {
 			return res.status(400).send('Missing required time.');
 		}
 
-		const guildConfig = await config.guilds.fetch(req.params.id);
-		if (!guildConfig) {
-			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
-		}
-
 		const doc = {
 			id: req.body.id,
 			time: req.body.time,
@@ -50,6 +41,11 @@ class Slowmode extends Controller {
 
 		if (req.body.user) {
 			doc.user = true;
+		}
+
+		const guildConfig = await config.guilds.fetch(req.params.id);
+		if (!guildConfig) {
+			return res.status(500).send('Something went wrong.');
 		}
 
 		guildConfig.slowmode = guildConfig.slowmode || {};
@@ -73,10 +69,6 @@ class Slowmode extends Controller {
 		const guildConfig = await config.guilds.fetch(req.params.id);
 		if (!guildConfig) {
 			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
 		}
 
 		guildConfig.slowmode = guildConfig.slowmode || {};

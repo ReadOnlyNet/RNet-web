@@ -1,11 +1,10 @@
 'use strict';
 
-const Eris = require('eris');
-const dot = require('dot-object');
 const uuid = require('node-uuid');
+const SnowTransfer = require('snowtransfer');
 const Server = require('./Server');
 const config = require('./config');
-const logger = require('./logger').get('Client');
+const logger = require('./logger');
 const CommandCollection = require('../collections/CommandCollection');
 const ModuleCollection = require('../collections/ModuleCollection');
 const GuildCollection = require('../collections/GuildCollection');
@@ -30,32 +29,24 @@ class Client {
 	 * @param  {Object} err Error object
 	 */
 	handleException(err) {
-		logger.error(err, 'unhandled');
+		logger.error(err);
 		setTimeout(() => process.exit(), 3000);
 	}
 
 	handleRejection(reason, p) {
-		logger.error(reason, 'unhandled', {reason, p}); // eslint-disable-line
-	}
-
-	async watchGlobal() {
-		await this.updateGlobal();
-
-		this._globalConfigInterval = setInterval(() => this.updateGlobal(), 2 * 60 * 1000);
-	}
-
-	async updateGlobal() {
-		try {
-			config.global = await RNet.findOne().lean();
-		} catch (err) {
-			logger.error(err, 'globalConfigRefresh');
-		}
+		console.error('Unhandled rejection at: Promise ', p, 'reason: ', reason); // eslint-disable-line
 	}
 
 	async setup() {
-		this.client = new Eris(`Bot ${config.client.token}`, { restMode: true });
+		const snowOptions = {
+			baseHost: config.snowgate.host,
+		};
 
-		await this.watchGlobal();
+		this.snowClient = new SnowTransfer(config.snowgate.token, snowOptions);
+
+		await RNet.findOne().lean()
+			.then(doc => { config.global = doc; })
+			.catch(err => logger.error(err));
 
 		// Create collections
 		this.commands = config.commands = new CommandCollection();
@@ -66,9 +57,9 @@ class Client {
 			this.prefix = (typeof config.prefix === 'string') ? config.prefix : '?';
 		}
 
-		this.user = await this.client.getSelf().catch(err => logger.error(err));
+		this.user = await this.snowClient.user.getSelf().catch(err => logger.error(err));
 
-		await this.server.start(this);
+		this.server.start(this);
 	}
 }
 

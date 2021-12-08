@@ -192,15 +192,15 @@ export default class ResponseModal extends React.Component {
 		const { formData } = this.state;
 		const disableName = !!this.props.command;
 
-		let channels = this.state.channels.filter(c => (c.type === 0 || c.type === 4));
+		let channels = this.state.channels.filter(c => c.type === 0);
 
 		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
 
 		let allowedChannels = this.state.formData.allowedChannels || [];
 		let ignoredChannels = this.state.formData.ignoredChannels || [];
 
-		allowedChannels = channels.filter(c => allowedChannels.find(i => i.id === c.id));
-		ignoredChannels = channels.filter(c => ignoredChannels.find(i => i.id === c.id));
+		allowedChannels = channels.filter(c => c.type === 0 && allowedChannels.find(i => i.id === c.id));
+		ignoredChannels = channels.filter(c => c.type === 0 && ignoredChannels.find(i => i.id === c.id));
 
 		const customs = this.state.emojis.map(emoji => {
 			return {
@@ -241,7 +241,7 @@ export default class ResponseModal extends React.Component {
 				<p className='cc-name control'>
 					<input className='input' type='text' value={formData.command} disabled={disableName} onChange={this.handleCommandName} />
 				</p>
-				<p className='control'>
+				<p className='control has-addons'>
 					<input id='messageType' className='radio'
 						type='radio'
 						name='type'
@@ -250,8 +250,8 @@ export default class ResponseModal extends React.Component {
 						checked={formData.type === 'message'} />
 					<label htmlFor='messageType'>
 						Message Response
+						<Help text='Auto responds with a message.' />
 					</label>
-					<Help text='Auto responds with a message.' />
 					<input id='reactionType' className='radio'
 						type='radio'
 						name='type'
@@ -260,8 +260,8 @@ export default class ResponseModal extends React.Component {
 						checked={formData.type === 'reaction'} />
 					<label htmlFor='reactionType'>
 						Reaction Response
+						<Help text='Auto responds by adding a reaction to the message. Note: RNet requires the "Add Reactions" permission to be able to do this.' />
 					</label>
-					<Help text='Auto responds by adding a reaction to the message. Note: RNet requires the "Add Reactions" permission to be able to do this.' />
 				</p>
 				{formData.type === 'message' && (
 					<p className='control'>

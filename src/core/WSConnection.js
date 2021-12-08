@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter = require('eventemitter3');
-const logger = require('./logger').get('WSConnection');
+const logger = require('./logger');
 
 class WSConnection extends EventEmitter {
 	constructor(ws) {

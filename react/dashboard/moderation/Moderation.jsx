@@ -1,11 +1,13 @@
 import React from 'react';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import ModuleSettings from '../common/ModuleSettings.jsx';
 import SettingsTab from './SettingsTab.jsx';
 
-export default class Moderation extends React.Component {
+export default class Moderation extends ModuleSettings {
     render() {
-		return (<ModuleSettings {...this.props} name='moderation' title='Moderation' isLoading={false}>
-			<SettingsTab {...this.props} {...this.props.data} />
-		</ModuleSettings>);
+		return (<div id='module-moderation' className='module-content module-settings'>
+			<h3 className='title is-4'>Moderation {this.ModuleToggle}</h3>
+			<SettingsTab {...this.props} />
+		</div>);
     }
 }

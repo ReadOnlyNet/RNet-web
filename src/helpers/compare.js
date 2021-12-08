@@ -43,10 +43,7 @@ module.exports = function compare(lvalue, operator, rvalue, options) {
     if (result) {
         return options.fn(this);
     } else {
-        if (typeof options.inverse === 'function') {
-            return options.inverse(this);
-        } else {
-            return null;
-        }
+        return options.inverse(this);
     }
+
 };

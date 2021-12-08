@@ -143,11 +143,11 @@ var _showSuccess, _showError
 		});
 
 		// faq toggle
-		// $('.faq-title').on('click', function (e) {
-		// 	e.preventDefault();
-		// 	$(this).toggleClass('is-active');
-		// 	$(this).next().toggleClass('is-active');
-		// });
+		$('.faq-title').on('click', function (e) {
+			e.preventDefault();
+			$(this).toggleClass('is-active');
+			$(this).next().toggleClass('is-active');
+		});
 
 		// module checkboxes
 		// $('.module').on('change', function () {

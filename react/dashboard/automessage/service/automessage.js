@@ -1,4 +1,3 @@
-/* globals _showSuccess _showError server */
 import axios from 'axios';
 
 export async function addAutomessage(data, channel) {
@@ -8,30 +7,19 @@ export async function addAutomessage(data, channel) {
         await axios.post(url, data);
         return _showSuccess(`Added Automessage ${channel}`);
     } catch (err) {
-        return _showError(err.response.data || 'Something went wrong.');
-    }
-}
-
-export async function saveAutomessage(data) {
-    const url = '/api/server/' + server + '/automessage/update';
-
-    try {
-        await axios.post(url, data);
-        return _showSuccess(`Updated Automessage`);
-    } catch (err) {
-        return _showError(err.response.data || 'Something went wrong.');
+        return _showError('Something went wrong.');
     }
 }
 
 export async function deleteAutomessage(message, channel) {
     const url = '/api/server/' + server + '/automessage/delete';
 
-	const data = { message, channel };
+	const data = { message, channel }
 
     try {
         await axios.post(url, data);
         return _showSuccess(`Deleted Automessage ${channel.name}`);
     } catch (err) {
-        return _showError(err.response.data || 'Something went wrong.');
+        return _showError('Something went wrong.');
     }
 }

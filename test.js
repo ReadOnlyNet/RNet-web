@@ -2,7 +2,7 @@
 
 const Eris = require('eris');
 const config = require('./config');
-const logger = require('./logger').get('test');
+const logger = require('./logger');
 
 const options = {
 	restMode: true,

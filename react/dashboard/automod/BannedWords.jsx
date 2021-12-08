@@ -70,8 +70,7 @@ export default class BannedWords extends React.Component {
 					{word}
 					<button className='delete' onClick={this.deleteWord.bind(this, 'badwords', word)}></button>
 				</span>
-			</span>
-		));
+			</span>));
 
 		const ExactTags = exactwords && exactwords.map(word => (
 			<span key={word} className='tag-wrap'>
@@ -79,16 +78,9 @@ export default class BannedWords extends React.Component {
 					{word}
 					<button className='delete' onClick={this.deleteWord.bind(this, 'exactwords', word)}></button>
 				</span>
-			</span>
-		));
-		
-		const GlobalTags = config.globalwords && config.globalwords.map(word => (
-			<span key={word} className='tag-wrap'>
-				<span className='tag'>{word}</span>
-			</span>
-		));
+			</span>));
 
-		return (<div className='automod-settings' className='settings-panel'>
+		return (<div className='automod-settings'>
 			<div className='settings-content'>
 				<h3 className='title is-5'>Add Banned Words</h3>
 				<div className='module-multitext'>
@@ -111,14 +103,6 @@ export default class BannedWords extends React.Component {
 					<input className='button is-info' type='button' value='Update' onClick={this.addWords} />
 				</div>
 			</div>
-			{!this.state.automod.disableGlobal && (
-				<div className='settings-content'>
-					<h3 className='title is-5'>Default Banned Words</h3>
-					{config.globalwords && config.globalwords.length ?
-						(<div className='tag-group'>{GlobalTags}</div>) :
-						(<p>There are no words in this list.</p>)}
-				</div>
-			)}
 			<div className='settings-content'>
 				<h3 className='title is-5'>Banned Words (wildcard)</h3>
 				{badwords && badwords.length ?

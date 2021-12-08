@@ -3,7 +3,7 @@
 const moment = require('moment-timezone');
 const Controller = require('../../core/Controller');
 const config = require('../../core/config');
-const logger = require('../../core/logger').get('ModLogs');
+const logger = require('../../core/logger');
 const db = require('../../core/models');
 
 class ModLogs extends Controller {
@@ -39,6 +39,7 @@ class ModLogs extends Controller {
             const count = await this.countLogs(req.params.id);
             pageCount = Math.ceil(count / pageSize);
 		} catch (err) {
+			console.error(err);
 			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}

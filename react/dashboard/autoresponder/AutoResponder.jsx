@@ -1,13 +1,15 @@
 import axios from 'axios';
 import React from 'react';
 import Modal from 'react-responsive-modal';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import ModuleSettings from '../common/ModuleSettings.jsx';
 import ResponseModal from './ResponseModal.jsx';
 import ResponseList from './ResponseList.jsx';
 import PaginatedTable from '../common/PaginatedTable.jsx';
 import { EmbedBuilder } from '../common/Embed';
+import Loader from '../common/Loader.jsx';
 
-export default class AutoResponder extends React.Component {
+export default class AutoResponder extends ModuleSettings {
 	state = {
 		autoresponder: {},
 		channels: [],
@@ -113,6 +115,10 @@ export default class AutoResponder extends React.Component {
     }
 
     render() {
+		if (this.state.isLoading) {
+			return <Loader />;
+		}
+
 		const { autoresponder } = this.state;
 		const commands = autoresponder.commands || [];
 
@@ -126,7 +132,6 @@ export default class AutoResponder extends React.Component {
 				'Response',
 				'',
 			],
-			searchableColumnsIds: [0, 1],
 			rows: commands.map(c => ({
 				fields: [
 					{ value: !c || !c.command ? 'Invalid Response' : `${c.command}` },
@@ -134,21 +139,22 @@ export default class AutoResponder extends React.Component {
 					{ value: (
 						<span>
 							<a className='button is-info command-edit' onClick={() => this.editCommand(c)} >Edit</a>
-							<a className='button is-danger is-outlined is-rounded command-remove' onClick={() => this.deleteCommand(c)} >Remove</a>
+							<a className='button is-danger command-remove' onClick={() => this.deleteCommand(c)} >Remove</a>
 						</span>
 					) },
 				],
 			})),
 		};
 
-		return (<ModuleSettings {...this.props} name='autoresponder' title='Auto Responder' isLoading={this.state.isLoading}>
+		return (<div id='module-autoresponder' className='module-content module-settings'>
+			<h3 className='title is-4'>Auto Responder {this.ModuleToggle}</h3>
 			<p>
-				<button className='button is-info' onClick={this.addModal}>Add Response</button>
+				<button className='button is-success' onClick={this.addModal}>Add Response</button>
 			</p>
 			<div id='customcommands-list'>
 				{commands ? (
 					<div id='responseList'>
-						<PaginatedTable data={data} pageLimit={10} search />
+						<PaginatedTable data={data} pageLimit={10} />
 					</div>
 				) : (<h4>There are no auto responses.</h4>)}
 			</div>
@@ -158,6 +164,6 @@ export default class AutoResponder extends React.Component {
 			<Modal open={this.state.editModal.open} classNames={modalClasses} onClose={this.editModalClose}>
 				<ResponseModal {...this.props} {...this.state} onClose={this.handleUpdateResponse} command={this.state.editModal.command} />
 			</Modal>
-		</ModuleSettings>);
+		</div>);
     }
 }

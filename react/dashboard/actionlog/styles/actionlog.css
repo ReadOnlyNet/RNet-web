@@ -12,8 +12,8 @@
 .actionlog-toggles .Select.is-focused:not(.is-open) > .Select-control,
 .actionlog-toggles .Select-menu-outer,
 .actionlog-toggles .Select-option {
-	background: #0C121D;
-	background-color: #0C121D;
+	background: #2A2B30;
+	background-color: #2A2B30;
 }
 
 .actionlog-toggles .Select-control,
@@ -22,6 +22,5 @@
 .actionlog-toggles .Select.is-open > .Select-control,
 .actionlog-toggles .Select.is-focused > .Select-control,
 .actionlog-toggles .Select.is-focused:not(.is-open) > .Select-control {
-	/* border-color: #0CE9D3; */
-	border-color: rgba(12,233,211, 0.4);
+	border-color: #555;
 }

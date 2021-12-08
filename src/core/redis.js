@@ -1,7 +1,8 @@
 'use strict';
 
 const Redis = require('ioredis');
-const logger = require('./logger').get('redis');
+const config = require('./config');
+const logger = require('./logger');
 
 const client = new Redis({
         name: 'master',
@@ -14,10 +15,11 @@ const client = new Redis({
 });
 
 client.on('ready', () => {
-        logger.debug('Connected to redis.');
+	logger.info('Connected to redis.');
 });
 
 client.on('error', err => {
+        console.log(err);
 	logger.error(err);
 });
 

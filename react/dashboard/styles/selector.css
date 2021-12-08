@@ -20,8 +20,8 @@
 .Select.is-focused:not(.is-open) > .Select-control,
 .Select-menu-outer,
 .Select-option {
-	background: #0C121D;
-	background-color: #0C121D;
+	background: #2A2B30;
+	background-color: #2A2B30;
 }
 
 .Select-control,
@@ -30,9 +30,7 @@
 .Select.is-open > .Select-control,
 .Select.is-focused > .Select-control,
 .Select.is-focused:not(.is-open) > .Select-control {
-	/* border-color: #0CE9D3; */
-	border-color: rgba(12,233,211, 0.4);
-	border-width: 1px;
+	border-color: #555;
 }
 
 .Select-control {
@@ -43,17 +41,9 @@
 	color: #ccc;
 }
 
-.Select--multi .Select-value {
-	margin-top: 4px;
-}
-
 .Select--multi .Select-value-icon {
-	padding: 3px 5px 1px;
+	padding: 2px 5px 3px;
 }
-
-/* .Select--multi .Select-value-label {
-	padding: 2px 5px 1px;
-} */
 
 .Select.is-open > .Select-control,
 .Select-menu-outer {

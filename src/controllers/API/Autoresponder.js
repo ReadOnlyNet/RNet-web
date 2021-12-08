@@ -91,6 +91,8 @@ class Autoresponder extends Controller {
 		guildConfig.autoresponder = guildConfig.autoresponder || {};
 		guildConfig.autoresponder.commands = guildConfig.autoresponder.commands || [];
 
+		guildConfig.autoresponder.commands[command.command] = command;
+
 		const index = guildConfig.autoresponder.commands.findIndex(c => c.command === command.command);
 		if (index === -1) {
 			return res.status(400).send(`Auto response doesn't exist.`);

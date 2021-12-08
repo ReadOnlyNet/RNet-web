@@ -7,8 +7,9 @@ import CommandList from './CommandList.jsx';
 import PaginatedTable from '../common/PaginatedTable.jsx';
 import { EmbedBuilder } from '../common/Embed';
 import Modal from 'react-responsive-modal';
+import Loader from '../common/Loader.jsx';
 
-export default class CustomCommands extends React.Component {
+export default class CustomCommands extends ModuleSettings {
 	state = {
 		customcommands: {},
 		channels: [],
@@ -104,10 +105,14 @@ export default class CustomCommands extends React.Component {
     }
 
     editModalClose = () => {
-		this.setState({ editModal: { open: false, command: false } });
+		this.setState({ editModal: { open: false, command: {} } });
     }
 
     render() {
+		if (this.state.isLoading) {
+			return <Loader />;
+		}
+
 		const { customcommands } = this.state;
 		const commands = customcommands.commands ? Object.keys(customcommands.commands).map(key => customcommands.commands[key]) : [];
 
@@ -121,35 +126,31 @@ export default class CustomCommands extends React.Component {
 				'Response',
 				'',
 			],
-			searchableColumnsIds: [0, 1],
 			rows: commands.map(c => ({
 				fields: [
-					{ value: !c || !c.command ? 'Invalid Command' : (<span className="command-name">{`${this.state.prefix}${c.command}`}</span>) },
+					{ value: !c || !c.command ? 'Invalid Command' : `${this.state.prefix}${c.command}` },
 					{ value: !c || !c.response ? 'Invalid Command, please remove.' : (
 						<code className='command-response'>{c.response}</code>
 					) },
 					{ value: (
 						<span>
-							<a className='button is-info is-rounded command-edit' onClick={() => this.editCommand(c)} >Edit</a>
-							<a className='button is-danger is-outlined is-rounded command-remove' onClick={() => {
-								if (window.confirm(`Are you sure you want to delete ${c.name}?`)) {
-									this.deleteCommand(c);
-								}
-							 }} >Remove</a>
+							<a className='button is-info command-edit' onClick={() => this.editCommand(c)} >Edit</a>
+							<a className='button is-danger command-remove' onClick={() => this.deleteCommand(c)} >Remove</a>
 						</span>
 					) },
 				],
 			})),
 		};
 
-		return (<ModuleSettings {...this.props} name='customcommands' title='Custom Commands' isLoading={this.state.isLoading}>
+		return (<div id='module-customcommands' className='module-content module-settings'>
+			<h3 className='title is-4'>Custom Commands {this.ModuleToggle}</h3>
 			<p>
-				<button className='button is-info' onClick={this.addModal}>Add Command</button>
+				<button className='button is-success' onClick={this.addModal}>Add Command</button>
 			</p>
 			<div id='customcommands-list'>
 				{commands ? (
 					<div id='commandList'>
-						<PaginatedTable data={data} pageLimit={10} search />
+						<PaginatedTable data={data} pageLimit={10} />
 					</div>
 				) : (<h4>There are no commands.</h4>)}
 			</div>
@@ -159,6 +160,6 @@ export default class CustomCommands extends React.Component {
 			<Modal open={this.state.editModal.open} classNames={modalClasses} onClose={this.editModalClose}>
 				<CommandModal {...this.props} {...this.state} onClose={this.handleUpdatedCommand} command={this.state.editModal.command} />
 			</Modal>
-		</ModuleSettings>);
+		</div>);
     }
 }

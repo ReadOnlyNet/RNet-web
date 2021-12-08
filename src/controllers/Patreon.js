@@ -3,7 +3,7 @@
 const superagent = require('superagent');
 const Controller = require('../core/Controller');
 const config = require('../core/config');
-const logger = require('../core/logger').get('Patreon');
+const logger = require('../core/logger');
 const utils = require('../core/utils');
 
 class Patreon extends Controller {
@@ -11,11 +11,6 @@ class Patreon extends Controller {
         super(bot);
 
         return {
-            patreon: {
-                method: 'get',
-                uri: '/patreon',
-                handler: this.patreon.bind(this),
-            },
             pledgeCreate: {
                 method: 'post',
                 uri: '/patreon/pledges/create',
@@ -32,15 +27,6 @@ class Patreon extends Controller {
                 handler: this.pledgeDelete.bind(this),
             },
         };
-    }
-
-    patreon(bot, req, res) {
-        let response = `Thank You.`;
-        if (req.cookies['oauth-patreon']) {
-            res.clearCookie('oauth-patreon');
-            response += '<script>window.close();</script>';
-        }
-        return res.send(response);
     }
 
     /**

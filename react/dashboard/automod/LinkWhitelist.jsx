@@ -50,7 +50,7 @@ export default class LinkWhitelists extends React.Component {
 		const items = automod.whiteurls || [];
 		const initialItems = items.map((u, i) => ({ id: i, value: u }));
 
-		return (<div id='automod-settings' className='settings-panel'>
+		return (<div id='automod-settings'>
 			<div className='settings-content'>
 				<h3 className='title is-5'>Link Whitelist</h3>
 				<p>These will <strong>never</strong> be deleted by the bot if it matches a link and regardless of link settings.</p>

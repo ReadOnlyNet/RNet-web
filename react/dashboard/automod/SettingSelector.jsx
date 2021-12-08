@@ -165,10 +165,11 @@ export default class SettingSelector extends React.Component {
 
 		const module = this.props.data.module;
 		const roles = this.state.roles;
-		const channels = this.state.channels.filter(c => (c.type === 0 || c.type === 4));
+		const channels = this.state.channels.filter(c => c.type === 0);
 		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
 
 		const ignoredChannels = channels.filter(c =>
+			c.type === 0 &&
 			this.state.ignoredChannels &&
 			this.state.ignoredChannels.find(i => i.id === c.id));
 
@@ -183,28 +184,26 @@ export default class SettingSelector extends React.Component {
         };
 
 		return (
-			<div className='automod-selector rich-select control'>
-				<div className='rich-select-top'>
-					<label className='label'>
-						{this.props.label}
-						{this.props.helpText && (<Help text={this.props.helpText} />)}
-						<a className='filter-settings' onClick={this.openSettings}>
-							<span className='icon is-link'>
-								<i className='fa fa-cog'></i>
-							</span>
-						</a>
-					</label>
-				</div>
-				<Select
-					id={`select-${this.props.id}`}
-					name={this.props.id}
-					multi={this.props.multi}
-					value={this.state.selectedOptions}
-					placeholder='Disabled'
-					clearable={false}
-					onChange={this.handleChange}
-					searchable={true}
-					options={options} />
+			<div className='automod-selector rich-select control rich-toggle'>
+				<label className='label'>
+					{this.props.label}
+					{this.props.helpText && (<Help text={this.props.helpText} />)}
+					<a className='filter-settings' onClick={this.openSettings}>
+						<span className='icon is-link'>
+							<i className='fa fa-cog'></i>
+						</span>
+					</a>
+					<Select
+						id={`select-${this.props.id}`}
+						name={this.props.id}
+						multi={this.props.multi}
+						value={this.state.selectedOptions}
+						placeholder='Disabled'
+						clearable={false}
+						onChange={this.handleChange}
+						searchable={true}
+						options={options} />
+				</label>
 				<Modal open={this.state.settingsModalOpen} classNames={modalClasses} little={true} onClose={this.closeSettings}>
 					<h3>{this.props.label}</h3>
 					<RichMultiSelect

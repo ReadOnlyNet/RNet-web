@@ -2,7 +2,6 @@
 
 const getenv = require('getenv');
 const DataFactory = require('@rnet.cf/datafactory');
-// const DataFactory = require('../../../RNet-datafactory');
 
 require('dotenv').config({ silent: true });
 

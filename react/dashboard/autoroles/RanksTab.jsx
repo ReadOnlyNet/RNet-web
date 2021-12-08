@@ -57,7 +57,7 @@ export default class RanksTab extends React.Component {
 		const module = this.props.data.module;
 		const roles = this.state.roles.filter(r => !this.state.ranks.find(i => i.id === r.id));
 
-		return (<div id='autoroles-settings' className='settings-panel'>
+		return (<div id='autoroles-settings'>
 			<div className='settings-group'>
 				<div className='settings-content is-half'>
 					<h3 className='title is-5'>Add Rank</h3>
