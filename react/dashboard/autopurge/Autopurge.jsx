@@ -39,7 +39,7 @@ export default class Autopurge extends React.Component {
 		// { filter: 'notrole', friendlyName: 'Not Role', hasRole: true, helpText: `Deletes messages from members not in the role(s).` },
 	];
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.updateState();
 	}
 

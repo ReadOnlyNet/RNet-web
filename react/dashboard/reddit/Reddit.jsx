@@ -22,7 +22,7 @@ export default class Reddit extends React.Component {
 		isLoading: true,
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.updateState();
 	}
 

@@ -11,14 +11,12 @@ import Autoroles from './autoroles/Autoroles.jsx';
 import Bans from './bans/Bans.jsx';
 import Commands from './commands/Commands.jsx';
 import CustomCommands from './customcommands/CustomCommands.jsx';
-import Levels from './levels/Levels.jsx';
 import MessageEmbedder from './messageEmbedder/MessageEmbedder.jsx';
 import Moderation from './moderation/Moderation.jsx';
 import ModuleCommands from './commands/ModuleCommands.jsx';
 import Modules from './modules/Modules.jsx';
 import Music from './music/Music.jsx';
 import Nav from './sidebar/Nav.jsx';
-import Sandbox from './sandbox/Sandbox.jsx';
 import Settings from './settings/Settings.jsx';
 import Tags from './tags/Tags.jsx';
 import VoiceTextLinking from './vtl/VoiceTextLinking.jsx';
@@ -131,9 +129,6 @@ export default class Dashboard extends React.Component {
 						<Route path={`${path}/modules/autoroles`} render={(props) => (
 							<Autoroles {...props} data={this.getProps('Autoroles')} />
 						)} />
-						<Route path={`${path}/levels`} render={(props) => (
-							<Levels {...props} data={this.getProps('Levels')} />
-						)} />
 						<Route path={`${path}/modules/music`} render={(props) => (
 							<Music {...props} data={this.getProps('Music')} />
 						)} />
@@ -168,7 +163,6 @@ export default class Dashboard extends React.Component {
 						)} />
 						<Route path={`${path}/logs`} component={Logs} />
 						<Route path={`${path}/bans`} component={Bans} />
-						<Route path={`${path}/sandbox`} component={Sandbox} />
 						{/* <Route path={`${path}/weblogs`} component={DashboardLogs} />
 					<Route path={`${path}/modlogs`} component={ModLogs} />
 					<Route path={`${path}/commandlogs`} component={CommandLogs} /> */}

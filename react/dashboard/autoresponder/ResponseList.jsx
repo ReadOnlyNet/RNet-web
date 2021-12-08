@@ -10,7 +10,7 @@ export default class CommandList extends React.Component {
 		isLoading: true,
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/customcommands`);
 

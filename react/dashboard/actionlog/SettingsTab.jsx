@@ -24,7 +24,7 @@ export default class SettingsTab extends React.Component {
         });
     }
 
-    UNSAFE_componentWillReceiveProps(props) {
+    componentWillReceiveProps(props) {
         this.setState({
             selectChannel: props.actionlog.selectChannel || false,
             ignoredChannels: props.actionlog.ignoredChannels || [],

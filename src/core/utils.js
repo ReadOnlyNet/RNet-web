@@ -5,7 +5,6 @@ const path = require('path');
 const http = require('http');
 const crypto = require('crypto');
 const config = require('./config');
-const logger = require('./logger').get('Utils');
 
 class Utils {
 	constructor() {
@@ -419,47 +418,6 @@ class Utils {
 			req.shouldKeepAlive = false;
 			req.end();
 		});
-	}
-
-	/**
-	 * Validates channel params to make sure they live within the same guild being managed
-	 * @param {Object} req Express request
-	 * @returns {Boolean} True for validated, false for invalid
-	 */
-	async isChannelPayloadValid(req, client) {
-		if (!req.body || req.method === 'GET' || req.method === 'OPTIONS' || (req.body && typeof req.body !== 'object')) {
-			return true;
-		}
-
-		const checkObj = async (body) => {
-			const possibleChannelKeys = ['channelid', 'channel', 'channel_id'];
-			const customChannelValues = ['commandChannel', 'userChannel'];
-			const keys = Object.keys(body);
-
-			for (let k of keys) {
-				let kl = k.toLowerCase();
-
-				if (possibleChannelKeys.includes(kl)) {
-					const channelId = (typeof body[k] === 'object') ? body[k].id : body[k];
-					if (customChannelValues.includes(channelId)) {
-						return true;
-					}
-					const restChannel = await client.getRESTChannel(channelId);
-					if (!restChannel || !restChannel.guild || restChannel.guild.id !== req.params.id) {
-						logger.info('Request denied, channel is not within guild being managed', 'channelGuard');
-						return false;
-					}
-				} else if (body[k] && typeof body[k] === 'object') {
-					const ret = await checkObj(body[k]);
-					if (ret === false) {
-						return false;
-					}
-				}
-			}
-			return true;
-		};
-
-		return checkObj(req.body);
 	}
 }
 

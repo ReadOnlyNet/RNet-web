@@ -13,14 +13,14 @@ export default class FilterList extends React.Component {
 		search: null,
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.setState({
 			initialItems: this.props.initialItems || [],
 			items: this.props.initialItems || [],
 		});
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.setState({
 			initialItems: props.initialItems || [],
 			items: props.initialItems || [],

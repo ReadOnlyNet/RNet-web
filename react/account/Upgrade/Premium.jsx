@@ -114,61 +114,59 @@ export default class Premium extends React.Component {
 
 		return (
 			<div className="upgrade-container">
-				<div className='feature-tiles'>
-					<div className="feature-tile-wrapper">
-						<div className="feature-tile feature-tile-image">
-							<img alt="Green outline of a handshake icon" src="https://s.rnet.cf/web-assets/upgrade/support.png" />
-						</div>
-						<div className="feature-tile is-size-6 has-text-grey">
-							<h1 className="has-text-white">Priority Support</h1>
-							Our staff is always ready to help you with any matters. From setting up the bot, to figuring out how to use it, we've got you covered.
-								</div>
+				<div className="feature-tile-wrapper">
+					<div className="feature-tile feature-tile-image">
+						<img alt="Green outline of a handshake icon" src="https://s.rnet.cf/web-assets/upgrade/support.png" />
 					</div>
-					<div className="feature-tile-wrapper">
-						<div className="feature-tile feature-tile-image">
-						<img alt="Green outline of a icon representing an image" src="https://s.rnet.cf/web-assets/upgrade/embed-editor.png" />
-						</div>
-						<div className="feature-tile is-size-6 has-text-grey">
-							<h1 className="has-text-white">Embed editor</h1>
-							Use our intuitive, feature rich embed editor to post delicate looking messages that can be used as announcements, rules, or whatever you like! Edit the embeds and send them directly from the dashboard.
+					<div className="feature-tile is-size-6 has-text-grey">
+						<h1 className="has-text-white">Priority Support</h1>
+						Our staff is always ready to help you with any matters. From setting up the bot, to figuring out how to use it, we've got you covered.
 							</div>
+				</div>
+				<div className="feature-tile-wrapper">
+					<div className="feature-tile feature-tile-image">
+					<img alt="Green outline of a icon representing an image" src="https://s.rnet.cf/web-assets/upgrade/embed-editor.png" />
 					</div>
-					<div className="feature-tile-wrapper">
-						<div className="feature-tile feature-tile-image">
-						<img alt="Green outline of a microphone icon" src="https://s.rnet.cf/web-assets/upgrade/voice-recorder.png" />
+					<div className="feature-tile is-size-6 has-text-grey">
+						<h1 className="has-text-white">Embed editor</h1>
+						Use our intuitive, feature rich embed editor to post delicate looking messages that can be used as announcements, rules, or whatever you like! Edit the embeds and send them directly from the dashboard.
 						</div>
-						<div className="feature-tile is-size-6 has-text-grey">
-							<h1 className="has-text-white">Voice Text Linking</h1>
-							Create channels that can only be seen when a member is in voice chat. RNet will automatically reveal the channel once they join voice, and will remove it once they leave it.
-							</div>
+				</div>
+				<div className="feature-tile-wrapper">
+					<div className="feature-tile feature-tile-image">
+					<img alt="Green outline of a microphone icon" src="https://s.rnet.cf/web-assets/upgrade/voice-recorder.png" />
 					</div>
-					<div className="feature-tile-wrapper">
-						<div className="feature-tile feature-tile-image">
-							<img alt="Green outline of an eraser icon" src="https://s.rnet.cf/web-assets/upgrade/eraser.png" />
+					<div className="feature-tile is-size-6 has-text-grey">
+						<h1 className="has-text-white">Voice Text Linking</h1>
+						Create channels that can only be seen when a member is in voice chat. RNet will automatically reveal the channel once they join voice, and will remove it once they leave it.
 						</div>
-						<div className="feature-tile is-size-6 has-text-grey">
-							<h1 className="has-text-white">Auto purge</h1>
-							Keep your channels clean by automatically purging them every once in a while. Configure once and RNet will do the rest.
-							</div>
+				</div>
+				<div className="feature-tile-wrapper">
+					<div className="feature-tile feature-tile-image">
+						<img alt="Green outline of an eraser icon" src="https://s.rnet.cf/web-assets/upgrade/eraser.png" />
 					</div>
-					{/* <div className="feature-tile-wrapper">
-						<div className="feature-tile feature-tile-image">
-							<img alt="Green outline of a music note" src="https://s.rnet.cf/web-assets/upgrade/music.png" />
+					<div className="feature-tile is-size-6 has-text-grey">
+						<h1 className="has-text-white">Auto purge</h1>
+						Keep your channels clean by automatically purging them every once in a while. Configure once and RNet will do the rest.
 						</div>
-						<div className="feature-tile is-size-6 has-text-grey">
-							<h1 className="has-text-white">Premium music</h1>
-							Enjoy your tunes with volume control, exclusive premium voice nodes with guaranteed uptime and no song length limits!
-							</div>
-					</div> */}
-					<div className="feature-tile-wrapper">
-						<div className="feature-tile feature-tile-image">
-							<img alt="Green outline of a gift icon with a star in the center" src="https://s.rnet.cf/web-assets/upgrade/more.png" />
-						</div>
-						<div className="feature-tile is-size-6 has-text-grey">
-							<h1 className="has-text-white">And more!</h1>
-							Premium users have all feature limits lifted, near perfect uptime, faster response times, better server specs, slow-mode, 2 minutes restarts and faster updates! You also get an exclusive role on the RNet server to show off your awesomeness & be granted access to an exclusive channel!
-							</div>
+				</div>
+				<div className="feature-tile-wrapper">
+					<div className="feature-tile feature-tile-image">
+						<img alt="Green outline of a music note" src="https://s.rnet.cf/web-assets/upgrade/music.png" />
 					</div>
+					<div className="feature-tile is-size-6 has-text-grey">
+						<h1 className="has-text-white">Premium music</h1>
+						Enjoy your tunes with volume control, exclusive premium voice nodes with guaranteed uptime and no song length limits!
+						</div>
+				</div>
+				<div className="feature-tile-wrapper">
+					<div className="feature-tile feature-tile-image">
+						<img alt="Green outline of a gift icon with a star in the center" src="https://s.rnet.cf/web-assets/upgrade/more.png" />
+					</div>
+					<div className="feature-tile is-size-6 has-text-grey">
+						<h1 className="has-text-white">And more!</h1>
+						Premium users have all feature limits lifted, near perfect uptime, faster response times, better server specs, slow-mode, 2 minutes restarts and faster updates! You also get an exclusive role on the RNet server to show off your awesomeness & be granted access to an exclusive channel!
+						</div>
 				</div>
 				<div className="plans-container">
 					<div className="plans-title">Premium Plans</div>

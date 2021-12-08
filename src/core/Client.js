@@ -1,7 +1,8 @@
 'use strict';
 
 const Eris = require('eris');
-const uuidv4 = require('uuid/v4');
+const dot = require('dot-object');
+const uuid = require('node-uuid');
 const Server = require('./Server');
 const config = require('./config');
 const logger = require('./logger').get('Client');
@@ -19,7 +20,7 @@ class Client {
 		this.reconnectIntervals = {};
 
 		config.state = config.state || (config.beta ? 1 : config.test ? 2 : 0);
-		config.uuid = uuidv4();
+		config.uuid = uuid.v4();
 
 		this.setup();
 	}

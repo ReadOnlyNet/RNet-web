@@ -15,7 +15,7 @@ export default class Setting extends React.Component {
 		this.setState({ isEnabled: this.props.isEnabled, value: this.props.value, selectChannel: this.props.selectChannel });
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.setState({ isEnabled: props.isEnabled, value: props.value, selectChannel: props.selectChannel });
 	}
 

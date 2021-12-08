@@ -20,12 +20,12 @@ const utils = require('./utils');
 const compareHelper = require('../helpers/compare');
 const ifArrayHelper = require('../helpers/ifArray');
 const cookieParser = require('cookie-parser');
+const fileType = require('file-type');
 const reload = requireReload(require);
 const morganJson = require('morgan-json');
 const staticify = require('staticify')(path.join(__dirname, '..', '..', 'public'));
 const Sitemap = require('./sitemap');
 const robots = require('express-robots-txt')
-const Base64 = require('js-base64').Base64;
 
 const s3 = new S3();
 
@@ -79,7 +79,6 @@ class Server {
 				log: (l) => console.log(l),
 				dynamicPartial: (name) => name,
 				toJSON: (object) => JSON.stringify(object),
-				toJSONSafe: (object) => Base64.encode(JSON.stringify(object)),
 				getVersionedPath: (str) => staticify.getVersionedPath(str),
 			},
 		}));
@@ -94,7 +93,7 @@ class Server {
 
 		app.use(express.static(config.paths.public, { maxAge: '30 days' }));
 		app.use(bodyParser.json());
-		// app.use(bodyParser.urlencoded({ extended: true }));
+		app.use(bodyParser.urlencoded({ extended: true }));
 		app.use(compression());
 		// app.use(multer({ dest: config.paths.uploads }).single('photo'));
 		// app.use(flash());

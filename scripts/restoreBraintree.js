@@ -1,4 +1,3 @@
-require('envkey');
 const braintree = require('braintree');
 const config = require('../src/core/config');
 const db = require('../src/core/models');

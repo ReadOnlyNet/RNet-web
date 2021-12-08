@@ -1,5 +1,4 @@
 'use strict';
-require('envkey');
 
 global.Promise = require('bluebird');
 global.requireReload = require('require-reload');

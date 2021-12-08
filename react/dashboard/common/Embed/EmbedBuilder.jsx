@@ -57,13 +57,13 @@ export default class EmbedBuilder extends React.Component {
 		return `${fn()}-${fn()}`;
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		if (this.props.embed) {
 			this.setBuilder(this.props.embed);
 		}
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		let embed = props.embed;
 
 		if (embed === -1) {

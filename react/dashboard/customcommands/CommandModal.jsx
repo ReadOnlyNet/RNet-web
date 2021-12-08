@@ -53,7 +53,7 @@ export default class CommandModal extends React.Component {
 		return `${fn()}-${fn()}`;
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		this.setState({
 			customcommands: this.props.customcommands || {},
 			channels: this.props.channels || [],
@@ -74,7 +74,7 @@ export default class CommandModal extends React.Component {
 		}
 	}
 
-	async UNSAFE_componentWillReceiveProps(props) {
+	async componentWillReceiveProps(props) {
 		this.setState({
 			customcommands: props.customcommands || {},
 			channels: props.channels || [],

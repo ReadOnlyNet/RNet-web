@@ -63,7 +63,6 @@ class DashboardLogs extends Controller {
                     id: l.user.id,
                     username: l.user.username,
                     discriminator: l.user.discriminator,
-                    avatar: l.user.avatar,
                 };
                 return l;
             });

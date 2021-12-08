@@ -21,7 +21,7 @@ export default class CommandGroup extends React.Component {
 		this.updateState(this.props);
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.updateState(props);
 	}
 

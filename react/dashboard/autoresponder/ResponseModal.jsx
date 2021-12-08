@@ -1,8 +1,8 @@
 import React from 'react';
 import axios from 'axios';
-import '!style-loader!css-loader!@rnet.cf/emoji-mart/css/emoji-mart.css';
-import { Picker } from '@rnet.cf/emoji-mart';
-import Emoji from '@rnet.cf/emoji-mart/dist/components/emoji/emoji.js';
+import '!style-loader!css-loader!emoji-mart/css/emoji-mart.css';
+import { Picker } from 'emoji-mart';
+import Emoji from 'emoji-mart/dist/components/emoji/emoji.js';
 import RichCheckbox from '../common/RichCheckbox.jsx';
 import RichMultiSelect from '../common/RichMultiSelect.jsx';
 import RichSelect from '../common/RichSelect.jsx';
@@ -32,7 +32,7 @@ export default class ResponseModal extends React.Component {
 		};
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		this.setState({
 			channels: this.props.channels || [],
 			emojis: this.props.emojis || [],
@@ -40,7 +40,7 @@ export default class ResponseModal extends React.Component {
 		});
 	}
 
-	async UNSAFE_componentWillReceiveProps(props) {
+	async componentWillReceiveProps(props) {
 		this.setState({
 			channels: props.channels || [],
 			emojis: props.emojis || [],

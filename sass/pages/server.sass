@@ -31,7 +31,7 @@
 				padding: 0 0.2em;
 
 body
-	font-family: 'Maison Neue' !important;
+	font-family: 'Maison Neue';
 
 #dashboard-mount > .columns
 	margin-top: 0;
@@ -71,7 +71,7 @@ body
 		.button
 			border-radius: 4px;
 
-.settings-content, .embed-builder-controls
+.settings-content
 	.control
 		textarea, select
 			background: #0C121D;
@@ -339,8 +339,6 @@ body
 	.settings-panel
 		background: linear-gradient(174.35deg, rgba(18,25,38, 0.6) 0%, rgba(13,18,28, 0.6) 100%);
 		padding: 32px;
-		@media (max-width: $break-mobile)
-			padding: 32px  8px;
 		margin-top: 1em;
 		.settings-content
 			background: linear-gradient(150.63deg, #232E42 0%, #1B2538 100%);
@@ -865,7 +863,7 @@ input[type=radio]
 		p
 			margin: 0.5em 0 0;
 	@media (max-width: $break-mobile)
-		margin: 0px;
+		margin: 24px;
 
 .module-settings
 	h3
@@ -1080,7 +1078,6 @@ input[type=checkbox]:checked + label:before
 
 .help-icon
 	margin-left: 0.4em;
-	margin-right: 10px;
 	a
 		color: #555;
 		&:hover
@@ -1238,12 +1235,10 @@ ul.server-info
 			&.user
 				color: #de6e6c;
 				font-weight: bold;
-			div
-				width: 32px;
-				height: 32px;
+			img
+				width: 25px;
+				height: 25px;
 				border-radius: 50%;
-				background-size: contain;
-				background-color: gray;
 
 .listing-preview
 	@media (max-width: $break-mobile)

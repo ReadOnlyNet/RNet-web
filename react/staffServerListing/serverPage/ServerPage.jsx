@@ -10,7 +10,7 @@ export default class ServerPage extends React.Component {
         };
     }
 
-    async UNSAFE_componentWillMount() {
+    async componentWillMount() {
         try {
             let server = await axios.get(`/serverlisting/server/${guildId}`);
 

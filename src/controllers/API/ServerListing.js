@@ -198,7 +198,6 @@ class ServerListing extends Controller {
 	async update(bot, upload, req, res) {
 		req.uploadDir = `serverlisting/${req.params.id}`;
 		upload.fields([{ name: 'backgroundImageVerticalFile' }, { name: 'backgroundImageFile' }])(req, res, async (err) => {
-			
 			if (err) {
 				logger.error(err);
 				res.status(500).send(err.message);
@@ -206,23 +205,6 @@ class ServerListing extends Controller {
 			}
 
 			try {
-				let { _csrf } = req.body;
-
-				if(!req.session || !req.session.csrftoken) {
-					return res.status(403).end();
-				}
-		
-				// get the one time token
-				const sessionToken = req.session.csrftoken;
-		
-		
-				if (_csrf !== sessionToken) {
-					return res.status(403).end();
-				}
-
-				// one time use token
-				req.session.csrftoken = undefined;
-
 				let {
 					inviteUrl,
 					description,

@@ -14,7 +14,7 @@ export default class ReactionRoles extends React.Component {
 		index: 0,
 	};
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/reactionroles`);
 
@@ -90,7 +90,7 @@ export default class ReactionRoles extends React.Component {
 						<div className={`mobile ${this.state.isOpen ? 'opened' : ''} ${this.state.index === 0 ? 'default' : ''}`}>
 							<ul className='dropdown'>
 								{this.state.index === 0 ? (
-									<li><span className='embed-list-name'><strong>+</strong> New Message</span></li>
+									<li><span className='embed-list-name'><strong>+</strong> New Embed</span></li>
 										) : (
 									<li><span className='embed-list-name'>
 										{selectedMessage.name}

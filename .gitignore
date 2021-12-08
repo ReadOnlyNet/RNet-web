@@ -44,8 +44,9 @@ jsconfig.json
 pm2.json
 Apollo.js
 build
+package-lock.json
+yarn.lock
 public/js/react/
 public/css/
 RNet-web.iml
 *.map
-yarn.lock

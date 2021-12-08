@@ -15,7 +15,7 @@ export default class VoiceTextLinking extends React.Component {
 		textOption: false,
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		this.updateState();
 	}
 

@@ -17,7 +17,7 @@ export default class RanksTab extends React.Component {
 		this.onRemoveHandler = this.onRemoveHandler.bind(this);
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/ranks`);
 			this.setState({ ranks: response.data.ranks, roles: response.data.roles, disableMulti: response.data.disableMulti });

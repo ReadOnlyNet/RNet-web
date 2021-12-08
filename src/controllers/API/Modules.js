@@ -135,11 +135,6 @@ class Modules extends Controller {
 				uri: `${basePath}/reddit`,
 				handler: this.getReddit.bind(this),
 			},
-			sandbox: {
-				method: 'get',
-				uri: `${basePath}/sandbox`,
-				handler: this.getSandbox.bind(this),
-			},
 			settings: {
 				method: 'get',
 				uri: `${basePath}/settings`,
@@ -367,12 +362,6 @@ class Modules extends Controller {
 			res.locals = Object.assign(res.locals, req.session);
 		}
 
-		const isValidChannelRequest = await utils.isChannelPayloadValid(req, this.client);
-
-		if(!isValidChannelRequest) {
-			return res.status(403).send('Forbidden');
-		}
-
 		return next();
 	}
 
@@ -411,7 +400,7 @@ class Modules extends Controller {
 		try {
 			const [channels, messages] = await Promise.all([
 				this._getChannels(req.params.id),
-				db.collection('automessages').find({ guild: req.params.id, disabled: { $ne: true } }, { projection: { webhook: 0 }}).toArray(),
+				db.collection('automessages').find({ guild: req.params.id }).toArray(),
 			]);
 
 			return res.send({ channels, messages });
@@ -421,11 +410,12 @@ class Modules extends Controller {
 		}
 	}
 
+
 	async getReddit(bot, req, res) {
 		try {
 			const [channels, subscriptions] = await Promise.all([
 				this._getChannels(req.params.id, 'nsfw'),
-				db.collection('reddits').find({ guildId: req.params.id }, { projection: { webhookId: 0, webhookToken: 0 }}).toArray(),
+				db.collection('reddits').find({ guildId: req.params.id }).toArray(),
 			]);
 
 			return res.send({ channels, subscriptions });
@@ -738,7 +728,7 @@ class Modules extends Controller {
 				this._getRoles(res.locals.guild),
 				models.MessageEmbed.find({ guild: req.params.id }),
 			]);
-			return res.send({ channels, roles, messages, debug: res.locals.guildConfig.debugEnabled || false });
+			return res.send({ channels, roles, messages });
 		} catch (err) {
 			logger.error(err);
 			return res.status(500).send('Something went wrong.');
@@ -819,27 +809,6 @@ class Modules extends Controller {
 		try {
 			const roles = await this._getRoles(res.locals.guild);
 			return res.send({ roles });
-		} catch (err) {
-			logger.error(err);
-			return res.status(500).send('Something went wrong.');
-		}
-	}
-
-	async getSandbox(bot, req, res) {
-		if (!req.session.isAdmin) {
-			return res.status(403).send('Forbidden');
-		}
-		try {
-			const [channels, emojis, roles] = await Promise.all([
-				this._getChannels(req.params.id),
-				this._getEmojis(res.locals.guild),
-				this._getRoles(res.locals.guild),
-			]);
-
-			const payload = {
-				channels, emojis, roles,
-			};
-			return res.send(payload);
 		} catch (err) {
 			logger.error(err);
 			return res.status(500).send('Something went wrong.');

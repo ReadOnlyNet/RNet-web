@@ -7,11 +7,11 @@ export default class LinkBlacklist extends React.Component {
 		automod: [],
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.setState({ automod: this.props.automod || {} });
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.setState({ automod: props.automod || {} });
 	}
 

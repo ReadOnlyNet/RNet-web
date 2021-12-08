@@ -30,7 +30,7 @@ export default class AutorolesTab extends React.Component {
 		this.onRemoveHandler = this.onRemoveHandler.bind(this);
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/autoroles`);
 
@@ -59,7 +59,7 @@ export default class AutorolesTab extends React.Component {
 		this.setState({ roles: this.props.roles || [] });
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.setState({ roles: props.roles || [] });
 	}
 

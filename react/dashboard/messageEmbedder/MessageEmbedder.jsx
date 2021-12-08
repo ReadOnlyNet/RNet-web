@@ -13,10 +13,9 @@ export default class MessageEmbedder extends React.Component {
 		isOpen: false,
 		index: 0,
 		clonedMessage: false,
-		debug: false,
 	};
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/messageEmbeds`);
 
@@ -24,7 +23,6 @@ export default class MessageEmbedder extends React.Component {
 				messages: response.data.messages,
 				channels: response.data.channels,
 				roles: response.data.roles,
-				debug: response.data.debug || false,
 				isLoading: false,
 			});
 		} catch (e) {
@@ -140,8 +138,7 @@ export default class MessageEmbedder extends React.Component {
 								onSave={this.onSave}
 								onCancel={this.onCancel}
 								getCloned={this.getClonedMessage}
-								onClone={this.onClone}
-								debug={this.state.debug || false} />
+								onClone={this.onClone} />
 							</TabPanel>
 							{mappedMessages.map(m => (
 								<TabPanel key={m._id}>
@@ -151,8 +148,7 @@ export default class MessageEmbedder extends React.Component {
 										message={m}
 										onSave={this.onSave}
 										onDelete={this.onDelete}
-										onClone={this.onClone}
-										debug={this.state.debug || false} />
+										onClone={this.onClone} />
 								</TabPanel>
 							))}
 						</div>

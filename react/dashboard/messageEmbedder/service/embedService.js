@@ -30,9 +30,8 @@ export async function editMessageEmbed(message) {
 	const data = { message };
 
     try {
-        const response = await axios.post(url, data);
-        _showSuccess(`Edited Message Embed ${message.name}`);
-        return response;
+        await axios.post(url, data);
+        return _showSuccess(`Edited Message Embed ${message.name}`);
     } catch (err) {
         return _showError('Something went wrong.');
     }

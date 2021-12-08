@@ -28,7 +28,7 @@ export default class PaginatedTable extends React.Component {
 		this.paginateData();
 	}
 
-	async UNSAFE_componentWillReceiveProps(props) {
+	async componentWillReceiveProps(props) {
 		const data = props.data || this.defaultData;
 		const pageLimit = props.pageLimit || 10;
 		await this.setState({ data, pageLimit });

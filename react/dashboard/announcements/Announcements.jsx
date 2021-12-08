@@ -16,7 +16,7 @@ export default class Announcements extends React.Component {
 		};
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/announcements`);
 

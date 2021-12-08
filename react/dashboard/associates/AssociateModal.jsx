@@ -24,7 +24,7 @@ export default class AssociateModal extends React.Component {
 		}
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		if (props.associate) {
 			this.setState({ associate: props.associate || this.defaultAssociate, preview: this.props.associate.banner });
 		}

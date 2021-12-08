@@ -10,7 +10,6 @@ const crypto = require('crypto');
 const RateLimit = require('express-rate-limit');
 const RedisStore = require('rate-limit-redis');
 const redisClient = require('../core/redis');
-const uuidv4 = require('uuid/v4');
 
 const { models, mongoose } = db;
 
@@ -496,7 +495,7 @@ class Account extends Controller {
 			let transactions = [];
 
 			stream.on('data', t => {
-				transactions.push(t);
+				transactions.push(t)
 			});
 
 			stream.on('end', () => {
@@ -531,7 +530,7 @@ class Account extends Controller {
 			.sort({ memberCount: -1 })
 			.lean()
 			.exec();
-
+		
 		try {
 			let transactions = await this.searchTransactions(search => {
 				search.customerId().is(premiumUser.customerId);
@@ -802,7 +801,6 @@ class Account extends Controller {
 	async process(bot, req, res) {
 		const nonce = req.body.paymentMethodNonce;
 		const planId = req.body.planId;
-		const uuid = uuidv4();
 
 		if (!nonce || !planId) {
 			return res.status(400).send({ error: 'Missing required parameters.' });
@@ -817,28 +815,24 @@ class Account extends Controller {
 		try {
 			let customerResponse;
 			let subscriptionCount = await models.BraintreeSubscription.count({ premiumUserId: req.session.user.id, status: 'Active' });
-			logger.info(`User has ${subscriptionCount} guilds enabled`, 'braintree', { subscriptionCount, reqUuid: uuid })
 			if (subscriptionCount >= 5) {
 				return res.status(403).send({ error: 'You reached the maximum number of active subscriptions for this account.' });
 			}
-			
+
 			let existingPremiumUserModel = await models.PremiumUser.findOne({ _id: req.session.user.id });
 			let existingCustomer = false;
 
 			if (existingPremiumUserModel !== null && existingPremiumUserModel.customerId !== undefined) {
 				existingCustomer = existingPremiumUserModel;
 
-				logger.info('User has premiumUser entry', 'braintree', { existingPremiumUserModel, reqUuid: uuid })
-
 				let customerFindResponse;
 				try {
 					customerFindResponse = await gateway.customer.find(existingPremiumUserModel.customerId);
-					logger.info('User has customer entry on braintree', 'braintree', { customerFindResponse, reqUuid: uuid })
 				} catch (err) {
 					if (err.type === 'notFoundError') {
 						existingCustomer = false;
 					} else {
-						logger.error(err, 'braintree', { userId: req.session.user.id, customerFindResponse, reqUuid: uuid });
+						logger.error(err, 'braintree', { userId: req.session.user.id, customerFindResponse });
 						return res.status(500).send({ error: 'Customer Creation Error' });
 					}
 				}
@@ -858,8 +852,6 @@ class Account extends Controller {
 				});
 			}
 
-			logger.info('User customer was created/updated on braintree', 'braintree', { customerResponse, reqUuid: uuid })
-
 			const paymentMethodResponse = await gateway.paymentMethod.create({
 				customerId: customerResponse.customer.id,
 				paymentMethodNonce: nonce,
@@ -868,28 +860,22 @@ class Account extends Controller {
 				},
 			});
 
-			logger.info('User payment method was attempted to be created', 'braintree', { paymentMethodResponse, reqUuid: uuid })
-
 			if (!customerResponse.success || !paymentMethodResponse.success) {
 				logger.error('Error while creating customerResponse or paymentMethodResponse', 'braintree', {
 					customerResponse,
 					paymentMethodResponse,
 					userId: req.session.user.id,
-					reqUuid: uuid
 				});
 				return res.status(500).send({ error: !customerResponse.success ? customerResponse.message : paymentMethodResponse.message });
 			}
 
 			customerResponse.customer = await gateway.customer.find(customerResponse.customer.id);
 
-			logger.info('Customer refreshed', 'braintree', { customer: customerResponse.customer, reqUuid: uuid })
-
 			if (!customerResponse.customer) {
 				logger.error('Failed to refetch customer.', 'braintree', {
 					customerResponse,
 					paymentMethodResponse,
 					userId: req.session.user.id,
-					reqUuid: uuid
 				});
 				return res.status(500).send({ error: 'Failed to re-fetch customer' });
 			}
@@ -898,20 +884,17 @@ class Account extends Controller {
 			if (existingPremiumUserModel !== null && existingCustomer === false) {
 				premiumUser = existingPremiumUserModel;
 				premiumUser.customerId = customerResponse.customer.id;
-				logger.info('Using existing PremiumUser and Customer', 'braintree', { premiumUser, reqUuid: uuid })
 			} else {
 				premiumUser = existingCustomer ? existingCustomer : new models.PremiumUser({
 					_id: req.session.user.id,
 					customerId: customerResponse.customer.id,
 				}, false);
-				logger.info('Creating new premiumUser', 'braintree', { premiumUser, existingCustomer, reqUuid: uuid })
 			}
 
 			premiumUser.user = req.session.user;
 			premiumUser.set('email', this.encrypt(req.session.user.email));
 			premiumUser.set('paymentMethods', customerResponse.customer.paymentMethods);
 			await premiumUser.save();
-			logger.info('premiumUser saved', 'braintree', { premiumUser, reqUuid: uuid })
 
 			const token = paymentMethodResponse.paymentMethod.token;
 
@@ -919,8 +902,6 @@ class Account extends Controller {
 				paymentMethodToken: token,
 				planId: planId,
 			});
-
-			logger.info('Subscription create attempted (braintree)', 'braintree', { subResponse, reqUuid: uuid })
 
 			if (!subResponse.success) {
 				throw subResponse;
@@ -933,8 +914,6 @@ class Account extends Controller {
 				'premium-3x': 3,
 				'premium-5x': 5,
 			};
-
-			logger.info('Plans fetched', 'braintree', { plan, planToServerMap, reqUuid: uuid })
 
 			const subscription = new models.BraintreeSubscription({
 				_id: subResponse.subscription.id,
@@ -953,19 +932,12 @@ class Account extends Controller {
 			}, false);
 			await subscription.save();
 
-			logger.info('Subscription created on DB', 'braintree', { subscription, reqUuid: uuid })
-
-
 			premiumUser.subscriptions.push(subscription);
 			await premiumUser.save();
-
-			logger.info('Subscription added to premiumUser', 'braintree', { premiumUser, reqUuid: uuid })
-
 
 			logger.info('Subscription created', 'braintree', {
 				premiumUser,
 				subscription,
-				reqUuid: uuid
 			});
 
 			await this.postWebhook(config.subscriptionWebhook, {
@@ -1001,7 +973,7 @@ class Account extends Controller {
 
 			return res.send(subResponse);
 		} catch (err) {
-			logger.error(err, 'braintree', { reqUuid: uuid });
+			logger.error(err);
 
 			if (err.transaction) {
 				return res.status(422).send({

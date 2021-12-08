@@ -25,10 +25,12 @@ export default class Serverlist extends React.Component {
     };
 
     async componentDidMount() {
-        setInterval(this.refreshCookies, 25 * 60 * 1000);
-
         const categories = await axios.get('/serverlisting/getCategories');
         this.setState({ categories: categories.data.categoriesInfo });
+    }
+
+    async componentWillMount() {
+        setInterval(this.refreshCookies, 25 * 60 * 1000);
     }
 
     refreshCookies() {
@@ -66,9 +68,8 @@ export default class Serverlist extends React.Component {
     getPage = async (number, type, seedOverride) => {
         try {
             let servers;
-            try {
-                GPT.refresh();
-            } catch (e) {};
+            GPT.refresh();
+
             const ad = document.getElementsByClassName('top-ad-container')[0];
             if(ad) {
                 ad.scrollIntoView({block: "start", behavior: "smooth"});
@@ -89,7 +90,6 @@ export default class Serverlist extends React.Component {
                 pageCount: servers.data.pageCount || 0,
             };
         } catch (e) {
-            console.error(e);
             this.setState({ error: 'Failed to load servers, try again later' });
         }
     }

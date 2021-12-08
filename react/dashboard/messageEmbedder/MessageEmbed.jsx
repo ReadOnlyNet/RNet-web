@@ -22,16 +22,17 @@ export default class MessageEmbed extends React.Component {
 		};
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		let props = { ...this.props };
 		if (this.props.getCloned) {
 			props.message = this.props.getCloned();
 			props.isCloned = true;
 		}
+		console.log(props);
 		this.updateState(props);
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		let message;
 		if (!props.messsage && this.state.isCloned) {
 			message = this.defaultMessage;
@@ -94,17 +95,9 @@ export default class MessageEmbed extends React.Component {
 		message.embed = embed;
 		message.channel = message.channel ? message.channel.id || message.channel : false;
 		await this.setState({ message });
-		
-		try {
-			const response = await editMessageEmbed(message);
-			message = response.data;
-			this.setState({ message });
-
-			if (this.props.onSave) {
-				this.props.onSave(message);
-			}
-		} catch (err) {
-			_showError('Something went wrong.');
+		await editMessageEmbed(message);
+		if (this.props.onSave) {
+			this.props.onSave(message);
 		}
 	}
 
@@ -173,17 +166,6 @@ export default class MessageEmbed extends React.Component {
 					options={channelOptions}
 					disabled={channelDisabled}
 					onChange={this.handleChannel} />
-				{this.props.debug && message.message && (
-					<p className='control'>
-						<label className='label' htmlFor='messageID'>Message ID</label>
-						<input id='messageID'
-							className='input is-expanded'
-							type='text'
-							placeholder='Message ID'
-							value={message.message || ''}
-							onChange={this.handleInput.bind(this, 'message')} />
-					</p>
-				)}
 			</div>
 			<div className='settings-content'>
 				<h3 className='title is-5'>Embed</h3>

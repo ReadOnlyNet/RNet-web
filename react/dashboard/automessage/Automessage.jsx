@@ -20,7 +20,7 @@ export default class Automessage extends React.Component {
 		editOpen: false,
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.updateState();
 	}
 

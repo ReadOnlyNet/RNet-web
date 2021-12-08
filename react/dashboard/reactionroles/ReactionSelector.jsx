@@ -1,9 +1,9 @@
 import React from 'react';
 import { createMessageEmbed, editMessageEmbed, deleteMessageEmbed } from './service/reactionRolesService.js';
 import RichSelect from '../common/RichSelect.jsx';
-import '!style-loader!css-loader!@rnet.cf/emoji-mart/css/emoji-mart.css';
-import { Picker } from '@rnet.cf/emoji-mart';
-import Emoji from '@rnet.cf/emoji-mart/dist/components/emoji/emoji.js';
+import '!style-loader!css-loader!emoji-mart/css/emoji-mart.css';
+import { Picker } from 'emoji-mart';
+import Emoji from 'emoji-mart/dist/components/emoji/emoji.js';
 
 export default class ReactionRolesPanel extends React.Component {
     state = {
@@ -12,7 +12,7 @@ export default class ReactionRolesPanel extends React.Component {
         description: '',
     };
 
-    UNSAFE_componentWillMount() {
+    componentWillMount() {
         this.setState({
             reaction: this.props.emoji || '',
             role: this.props.role || '',

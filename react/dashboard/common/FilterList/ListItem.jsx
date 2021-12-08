@@ -5,11 +5,11 @@ export default class ListItem extends React.Component {
 		item: {},
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.setState({ item: this.props.item });
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.setState({ item: props.item });
 	}
 

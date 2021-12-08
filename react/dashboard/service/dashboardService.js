@@ -16,15 +16,9 @@ export async function updateSetting(setting, value) {
 export async function updateNick(nick) {
     const url = '/api/server/' + server + '/updateNick';
     const data = { nick };
-    const options = {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        data,
-        url,
-    };
 
     try {
-        await axios(options);
+        await axios.post(url, data);
         return _showSuccess(`Changed Nickname to ${nick}`);
     } catch (err) {
         return _showError('Something went wrong.');
@@ -64,7 +58,6 @@ export async function updateModuleSetting(module, setting, value, friendlyName, 
             return _showSuccess(`Changed ${friendlyName} to ${valueName || value}`);
         }
     } catch (err) {
-        console.log(err);
         return _showError('Something went wrong.');
     }
 }

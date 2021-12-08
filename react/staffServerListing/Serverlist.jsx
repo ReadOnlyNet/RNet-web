@@ -39,7 +39,7 @@ export default class Serverlist extends React.Component {
         this.setState({ categories: categories.data.categoriesInfo });
     }
 
-    async UNSAFE_componentWillMount() {
+    async componentWillMount() {
         setInterval(this.refreshCookies, 25 * 60 * 1000);
     }
 

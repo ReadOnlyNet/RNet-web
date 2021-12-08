@@ -15,7 +15,7 @@ export default class ReactionRolesPanel extends React.Component {
 		messageId: '',
 	};
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		const msg = this.props.message;
 
 		if (!msg) return;
@@ -23,19 +23,14 @@ export default class ReactionRolesPanel extends React.Component {
 		const { title, description, name } = msg;
 
 		const channel = msg.channel;
-		const channels = this.props.channels.filter(c => c.type === 0);
-		const selectedChannel = channels.find(c => channel && c.id === channel.id) || false;
+		const selectedChannel = { value: channel.id, label: channel.name };
 
 		const reactions = msg.roles.map((r, i) => {
 			const emoji = Object.assign({}, r);
 			delete emoji.roleId;
 
 			let role = this.props.roles.find((rol) => rol.id === r.roleId);
-			if (!role) {
-				role = { label: 'Deleted Role', value: null };
-			} else {
-				role = { label: role.name, value: role.id };
-			}
+			role = { label: role.name, value: role.id };
 
 			const description = r.description;
 			return { id: i, emoji, role, description };

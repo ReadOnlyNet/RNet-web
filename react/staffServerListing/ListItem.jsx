@@ -33,7 +33,7 @@ export default class ListItem extends React.Component {
         }
     }
 
-    UNSAFE_componentWillReceiveProps(props) {
+    componentWillReceiveProps(props) {
         if (props.server) {
             this.setState({
                 listed: props.server.listed,

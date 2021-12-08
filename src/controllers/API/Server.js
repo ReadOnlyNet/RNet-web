@@ -222,12 +222,6 @@ class Server extends Controller {
 			return res.status(403).send('Unauthorized 2');
 		}
 
-		const isValidChannelRequest = await utils.isChannelPayloadValid(req, this.client);
-
-		if(!isValidChannelRequest) {
-			return res.status(403).send('Forbidden');
-		}
-
 		res.locals.isManager = true;
 
 		if (!res.locals.user) {

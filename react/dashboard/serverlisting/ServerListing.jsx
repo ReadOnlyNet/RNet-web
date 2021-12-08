@@ -40,7 +40,7 @@ export default class ServerListing extends React.Component {
 		],
 	};
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.fetchServerInfo();
 	}
 
@@ -164,18 +164,12 @@ export default class ServerListing extends React.Component {
 			this.showUnlistedModal(true);
 			return;
 		}
-		const csrfReq = await axios.post('/csrf', {
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-		const token = csrfReq.data;
 
 		this.showUnlistedModal(false);
 
 		try {
 			const formData = new FormData();
-			formData.append('_csrf', token);
+
 			formData.append('inviteUrl', this.state.serverInfo.inviteUrl);
 			// formData.append('borderColor', this.state.serverInfo.borderColor);
 			formData.append('backgroundImageFile', this.state.backgroundRegularFile);

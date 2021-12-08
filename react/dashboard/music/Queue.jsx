@@ -13,7 +13,7 @@ export default class Queue extends React.Component {
 
         this.deleteQueueItem = this.deleteQueueItem.bind(this);
     }
-    async UNSAFE_componentWillMount() {
+    async componentWillMount() {
         try {
             let response = await axios.get(`/api/modules/${this.props.match.params.id}/music-queue`);
             this.setState({

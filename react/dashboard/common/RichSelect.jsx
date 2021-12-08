@@ -10,7 +10,7 @@ export default class RichSelect extends React.Component {
 		hasChanged: false,
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		let { selectedOption, hasChanged } = this.state;
 		if (hasChanged) {
 			return;
@@ -22,7 +22,7 @@ export default class RichSelect extends React.Component {
 		this.setState({ selectedOption });
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		let { selectedOption, hasChanged } = this.state;
 		if (hasChanged) {
 			return;

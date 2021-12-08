@@ -125,7 +125,7 @@ export default class Bans extends React.Component {
 									<div className="media-left">
 										<figure className="image is-48x48">
 											{ban.user.avatar ? (
-												<img src={`https://cdn.discordapp.com/avatars/${ban.user.id}/${ban.user.avatar}.png?size=128`} alt="Banned user avatar" />
+												<img src={`https://cdn.discordapp.com/avatars/${ban.user.id}/${ban.user.avatar}.jpg?size=128`} alt="Banned user avatar" />
 											) : (
 												<img className="image navbar-avatar" src="https://discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png" alt="Banned user avatar" />
 											)}

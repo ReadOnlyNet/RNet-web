@@ -14,7 +14,7 @@ export default class Autoroles extends React.Component {
 		};
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/roles`);
 			this.setState({

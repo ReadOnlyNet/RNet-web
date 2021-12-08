@@ -3,8 +3,7 @@
 const Controller = require('../core/Controller');
 const redis = require('../core/redis');
 const logger = require('../core/logger').get('Support');
-const db = require('../core/models');
-const { models } = db;
+const { models } = require('../core/models');
 
 /**
  * Support controller
@@ -71,7 +70,7 @@ class Support extends Controller {
 		}
 
 		try {
-			let result = await redis.get(`supportcfg:${req.params.id}`);
+			let result = redis.get(`supportcfg:${req.params.id}`);
 			if (!result) {
 				return res.status(404).send('Config not found.');
 			}
@@ -87,14 +86,7 @@ class Support extends Controller {
 				return res.status(403).send('Forbidden');
 			}
 
-			let [config, tags, automessages, autopurges, reddits, embeds] = await Promise.all([
-				models.Server.findOne({ _id: result.guildId }).lean(),
-				models.Tag.find({ guild: result.guildId }).lean(),
-				db.collection('automessages').find({ guild: result.guildId }, { projection: { webhook: 0 }}).toArray(),
-				db.collection('autopurges').find({ guild: result.guildId }).toArray(),
-				db.collection('reddits').find({ guildId: result.guildId }, { projection: { webhookId: 0, webhookToken: 0 }}).toArray(),
-				models.MessageEmbed.find({ guild: result.guildId }).lean(),
-			]);
+			let config = await models.Server.findOne({ _id: result.guildId }).lean().exec();
 
 			let filteredKeys = [
 				'dyno',
@@ -114,62 +106,7 @@ class Support extends Controller {
 
 			config = this.parseConfig(config, channels, roles);
 
-			if (tags && tags.length) {
-				tags = tags.map(tag => {
-					return Object.keys(tag)
-						.filter(key => !filteredKeys.includes(key))
-						.reduce((obj, key) => {
-							obj[key] = tag[key]; return obj;
-						}, {});
-					});
-				tags = this.parseConfig(tags, channels, roles);
-			}
-
-			if (automessages && automessages.length) {
-				automessages = automessages.map(automessage => {
-					return Object.keys(automessage)
-						.filter(key => !filteredKeys.includes(key))
-						.reduce((obj, key) => {
-							obj[key] = automessage[key]; return obj;
-						}, {});
-					});
-				automessages = this.parseConfig(automessages, channels, roles);
-			}
-
-			if (autopurges && autopurges.length) {
-				autopurges = autopurges.map(autopurge => {
-					return Object.keys(autopurge)
-						.filter(key => !filteredKeys.includes(key))
-						.reduce((obj, key) => {
-							obj[key] = autopurge[key]; return obj;
-						}, {});
-					});
-				autopurges = this.parseConfig(autopurges, channels, roles);
-			}
-
-			if (reddits && reddits.length) {
-				reddits = reddits.map(reddit => {
-					return Object.keys(reddit)
-						.filter(key => !filteredKeys.includes(key))
-						.reduce((obj, key) => {
-							obj[key] = reddit[key]; return obj;
-						}, {});
-					});
-				reddits = this.parseConfig(reddits, channels, roles);
-			}
-
-			if (embeds && embeds.length) {
-				embeds = embeds.map(embed => {
-					return Object.keys(embed)
-						.filter(key => !filteredKeys.includes(key))
-						.reduce((obj, key) => {
-							obj[key] = embed[key]; return obj;
-						}, {});
-					});
-				embeds = this.parseConfig(embeds, channels, roles);
-			}
-
-			return res.send({ config: { config, automessages, autopurges, tags, reddits, embeds } });
+			return res.send({ config });
 		} catch (err) {
 			logger.error(err);
 			return res.status(500).send('Something went wrong.');

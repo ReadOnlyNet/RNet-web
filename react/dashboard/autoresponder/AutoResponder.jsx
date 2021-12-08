@@ -20,7 +20,7 @@ export default class AutoResponder extends React.Component {
         },
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/autoresponder`);
 

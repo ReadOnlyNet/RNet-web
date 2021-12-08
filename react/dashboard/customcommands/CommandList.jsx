@@ -10,7 +10,7 @@ export default class CommandList extends React.Component {
 		isLoading: true,
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/customcommands`);
 
@@ -109,7 +109,7 @@ export default class CommandList extends React.Component {
 										</code></td>
 										<td>
 											<a className='button is-danger is-outlined command-remove' onClick={() => {
-												if (window.confirm(`Are you sure you want to delete ${c.command}?`)) {
+												if (window.confirm(`Are you sure you want to delete ${c.name}?`)) {
 													this.deleteCommand(c)
 												}
 											}} >Remove</a>

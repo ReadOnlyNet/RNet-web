@@ -69,7 +69,7 @@ class Automessage extends Controller {
 		if (!req.body.channel) {
 			return res.status(400).send('Missing required channel.');
 		}
-		
+
 		let webhook;
 
 		try {
@@ -126,8 +126,6 @@ class Automessage extends Controller {
 			return res.status(400).send('Missing required message.');
 		}
 
-		console.log(req.body);
-
 		const guildConfig = await config.guilds.getOrFetch(req.params.id);
 		if (!guildConfig) {
 			return res.status(500).send('Couldn\'t fetch guild config');
@@ -153,8 +151,6 @@ class Automessage extends Controller {
 		if (!req.body.channel) {
 			return res.status(400).send('Missing required channel.');
 		}
-
-
 
 		try {
 			const docs = await this.getDocs(req.params.id, req.body.channel.id);

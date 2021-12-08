@@ -24,7 +24,7 @@ export default class Settings extends ModuleSettings {
 		};
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let [response, logsResponse] = await Promise.all([
 				axios.get('/api/modules/' + server + '/settings'),
@@ -112,7 +112,7 @@ export default class Settings extends ModuleSettings {
 						defaultValue={this.state.server.modonly ? true : false}
 					/>
 					<label className='label'>Nickname</label>
-					<div className='text-form'>
+					<form className='text-form'>
 						<p className='control has-addons'>
 							<input
 								className='input'
@@ -121,12 +121,12 @@ export default class Settings extends ModuleSettings {
 								value={this.state.nick}
 								maxLength='32'
 								onChange={this.setNick} />
-							<a className='button nick is-info' onClick={this.updateNick.bind(this)}>Update</a>
+							<a className='button nick is-info' onClick={this.updateNick}>Update</a>
 						</p>
-					</div>
+					</form>
 
 					<label className='label'>Command Prefix</label>
-					<div className='text-form'>
+					<form className='text-form'>
 						<p className='control has-addons'>
 							<input
 								className='input'
@@ -138,12 +138,12 @@ export default class Settings extends ModuleSettings {
 								onChange={this.setPrefix} />
 							<a className='button is-info' onClick={this.updateSetting.bind(this, 'prefix')}>Update</a>
 						</p>
-					</div>
+					</form>
 
 					<label className='label'>Timezone</label>
 					<p className='control'>
 						<span className='select'>
-							<select className='setting-dropdown' name='timezone' value={this.state.server.timezone} onChange={this.setTimezone.bind(this)}>
+							<select className='setting-dropdown' name='timezone' value={this.state.server.timezone} onChange={this.setTimezone}>
 								<option>Select Timezone</option>
 								{timezones}
 							</select>
@@ -164,10 +164,7 @@ export default class Settings extends ModuleSettings {
 								</tr>
 								{this.state.logs && this.state.logs.map(log => (
 									<tr key={log._id}>
-										<td className='avatar'>
-											<div style={{ backgroundImage: `url(https://cdn.discordapp.com/avatars/${log.user.id}/${log.user.avatar}.png?size=64)`}}>
-											</div>
-										</td>
+										<td className='avatar'><img alt="Discord user avatar" src={`https://cdn.discordapp.com/avatars/${log.user.id}/${log.user.avatar}.jpg?size=128`} /></td>
 										<td>{log.createdAt}</td>
 										{/* <td>{log.user.id}</td> */}
 										<td className='user'>{log.user.username}#{log.user.discriminator}</td>

@@ -25,7 +25,7 @@ export default class ModuleCommands extends React.Component {
 		this.getCommands(this.props.module);
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.updateState(props);
 	}
 

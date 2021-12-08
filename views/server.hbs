@@ -9,8 +9,6 @@
 	<div class="notification error is-danger is-hidden"><p></p></div>
 </div>
 
-<script src="/js/vendor/base64.min.js"></script>
 <script type="text/javascript">
-	var config = JSON.parse(Base64.decode("{{{toJSONSafe dashboardConfig}}}"));
-	
+	var config = {{{toJSON dashboardConfig}}}
 </script>

@@ -72,12 +72,10 @@ class Reddit extends Controller {
 		if (!channel) {
 			return res.status(400).send('Missing required channel.');
 		}
-
 		if (!messageType || !['simple', 'embed'].includes(messageType)) {
 			return res.status(400).send('Missing/invalid messageType.');
 		}
 
-		
 		if (blurNsfw === undefined) {
 			blurNsfw = true;
 		}

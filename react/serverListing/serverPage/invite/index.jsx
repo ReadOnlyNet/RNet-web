@@ -27,7 +27,7 @@ class ServerPageInvite extends React.Component {
         document.getElementById('carbon-wrapper').appendChild(script);
     }
 
-    async UNSAFE_componentWillMount() {
+    async componentWillMount() {
         try {
             let server = await axios.get(`/serverlisting/server/${guildId}`);
 

@@ -8,6 +8,7 @@ const config = require('../core/config');
 const logger = require('../core/logger').get('Index');
 const redis = require('../core/redis');
 const db = require('../core/models');
+const stripe = require('stripe')();
 const slugify = require('slugify');
 
 /**
@@ -108,6 +109,11 @@ class Index extends Controller {
 				method: 'get',
 				uri: '/upgrade',
 				handler: this.upgrade.bind(this),
+			},
+			upgradeStripe: {
+				method: 'post',
+				uri: '/upgrade/stripe',
+				handler: this.upgradeStripe.bind(this),
 			},
 			donate: {
 				method: 'get',
@@ -364,7 +370,7 @@ class Index extends Controller {
 	}
 
 	invite(bot, req, res) {
-		res.locals.redirectURI = `https://discordapp.com/oauth2/authorize?client_id=${config.client.id}&scope=bot%20identify%20guilds&response_type=code&redirect_uri=https://rnet.cf/return&permissions=${config.defaultPermissions}`;
+		res.locals.redirectURI = `https://discordapp.com/oauth2/authorize?client_id=${config.client.id}&scope=bot%20identify%20guilds&response_type=code&redirect_uri=https://www.rnet.cf/return&permissions=${config.defaultPermissions}`;
 		res.locals.pagetitle = 'Add RNet to your Discord server';
 		res.locals.content = `If you're not redirected, <a href="${res.locals.redirectURI}" title="Invite RNet">click here</a> to be taken add RNet.`;
 		return res.render('redirect', { layout: 'redirect' });
@@ -404,6 +410,36 @@ class Index extends Controller {
 		}
 		res.locals.stylesheets.push('/css/pages/upgrade.css');
 		return res.render('upgrade');
+	}
+
+	upgradeStripe(bot, req, res) {
+		if (!req.body || !req.body.stripeToken || !req.body.csrf) {
+			req.flash('errors', 'Invalid request.');
+			return res.redirect('/upgrade');
+		}
+
+		if (!this.validateStripe(req.body)) {
+			req.flash('errors', 'Mismatching form data. Please try again.');
+			return res.redirect('/upgrade');
+		}
+
+		stripe.customers.create({
+			email: req.body.stripeEmail,
+			source: req.body.stripeToken,
+		}).then(customer => {
+			stripe.subscriptions.create({
+				customer: customer.id,
+				plan: req.body.plan,
+			}).then(subscription => {
+				req.session.customer = customer;
+				req.session.subscription = subscription;
+				return res.redirect('/upgrade/success');
+			});
+		}).catch(err => {
+			logger.error(err);
+			req.flash('errors', 'Unable to process your request.');
+			return res.redirect('/upgrade');
+		});
 	}
 
 	commands(bot, req, res) {

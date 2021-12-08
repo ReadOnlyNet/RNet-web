@@ -13,7 +13,7 @@ export default class Cleverbot extends ModuleSettings {
 		isLoading: true,
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/cleverbot`);
 			const cleverbot = response.data.cleverbot || {};

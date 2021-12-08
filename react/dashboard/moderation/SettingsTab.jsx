@@ -22,7 +22,7 @@ export default class SettingsTab extends React.Component {
 		isLoading: true,
 	}
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/moderation`);
 
@@ -107,21 +107,6 @@ export default class SettingsTab extends React.Component {
 					defaultValue={this.state.moderation.respondWithReasons || false}
 					helpText='This will include the reason in the mute/kick/ban message in the chat.'
 					text='Respond with Reason' />
-				<SettingCheckbox module={module} setting='removeRoles'
-					friendlyName='Remove roles when muted'
-					defaultValue={this.state.moderation.removeRoles || false}
-					helpText='This will remove a members roles when they are muted, and give them back when unmuted.'
-					text='Remove roles when muted' />
-				<SettingCheckbox module={module} setting='disableDelete'
-					friendlyName="Preserve messages on ban"
-					defaultValue={this.state.moderation.disableDelete || false}
-					helpText="When this is enabled, a user's messages will not be deleted when they are banned."
-					text='Preserve messages on ban' />
-				<SettingCheckbox module={module} setting='matchEnabled'
-					friendlyName="Enable ban match command"
-					defaultValue={this.state.moderation.matchEnabled || false}
-					helpText="When this is enabled, server managers/admins will be able to use the ban match command in the event of a raid see ban command help for more info."
-					text='Enable ban match command' />
 			</div>
 			<div className='settings-group'>
 				<div className='settings-content is-third'>

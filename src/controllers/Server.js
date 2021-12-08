@@ -153,6 +153,14 @@ class Server extends Controller {
 		const guild = res.locals.guild;
 		const guildConfig = res.locals.guildConfig;
 
+		if (guildConfig && guildConfig.beta && !config.beta && !config.test) {
+			return res.redirect(`https://beta.rnet.cf/server/${req.params.id}`);
+		}
+
+		if (guildConfig && !guildConfig.beta && config.beta && !config.test) {
+			return res.redirect(`https://www.rnet.cf/server/${req.params.id}`);
+		}
+
 		const redirect_uri = `${redirect_base}/return`;
 		const oauthRedirect = `https://discordapp.com/oauth2/authorize?client_id=${config.client.id}&scope=bot&guild_id=${req.params.id}&response_type=code&redirect_uri=${redirect_uri}&permissions=${config.defaultPermissions}`;
 

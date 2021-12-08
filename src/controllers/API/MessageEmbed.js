@@ -50,7 +50,6 @@ class MessageEmbed extends Controller {
 
 		let { name, channel, embed } = req.body.message;
 
-
 		if (!name || !channel || !embed) {
 			return res.status(400).send('Missing required parameters.');
 		}
@@ -126,15 +125,14 @@ class MessageEmbed extends Controller {
 		}
 
 		const message = req.body.message;
-
 		let msg;
 
 		try {
 			msg = await this.client.editMessage(message.channel, message.message, { embed: message.embed });
 		} catch (err) {
+			logger.error(err);
 			// 10008 === Unknown Message
 			if (err.response && err.response.code !== 10008) {
-				logger.error(err);
 				return res.status(500).send('Error editing message in Discord.');
 			}
 		}
@@ -152,17 +150,14 @@ class MessageEmbed extends Controller {
 			return res.status(500).send('Unable to edit/send message.');
 		}
 
-		message.message = msg.id;
-
 		try {
-			await models.MessageEmbed.updateOne({ _id: message._id }, { $set: {
-				message: msg.id,
+			await models.MessageEmbed.update({ _id: message._id }, { $set: {
 				name: message.name,
 				embed: message.embed,
 			} });
 
 			this.weblog(req, req.params.id, req.session.user, `Edited Message Embed ${message.name}.`);
-			return res.send(message);
+			return res.send('Edited Message Embed.');
 		} catch (err) {
 			logger.error(err);
 		}

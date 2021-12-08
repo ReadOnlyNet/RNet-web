@@ -25,7 +25,7 @@ export default class EditTag extends React.Component {
         });
     }
 
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
         this.setState({
             name: nextProps.name,
             value: nextProps.value

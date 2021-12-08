@@ -16,7 +16,7 @@ export default class MessageSetting extends React.Component {
         this.setState({ value: this.props.defaultValue });
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		if (props.defaultValue === this.state.value) {
 			return;
 		}

@@ -21,7 +21,7 @@ export default class List extends React.Component {
         this.buildPages = this.buildPages.bind(this);
     }
 
-    async UNSAFE_componentWillReceiveProps(nextProps) {
+    async componentWillReceiveProps(nextProps) {
         if (this.props.isShowcase) {
             this.setState({
                 servers: nextProps.servers,
@@ -50,7 +50,7 @@ export default class List extends React.Component {
         });
     }
 
-    async UNSAFE_componentWillMount() {
+    async componentWillMount() {
         if (this.props.isShowcase) {
             this.setState({
                 servers: this.props.servers,

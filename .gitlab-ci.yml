@@ -7,36 +7,40 @@ stages:
 
 build:
   stage: build
-  image: node:12
   before_script:
-    - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+    - apt-get update -y > /dev/null
+    - apt-get install curl build-essential git zip -y > /dev/null
+    - curl -sL https://deb.nodesource.com/setup_8.x | bash > /dev/null
+    - apt-get install -y nodejs > /dev/null
+    - npm i yarn -g > /dev/null
     - npm i gulp -g > /dev/null
     - curl https://s.rnet.cf/web-deploy/mc -s -o mc
     - chmod +x mc
     - ./mc config host add minio https://s.rnet.cf/ "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
   script: 
-    - npm ci
+    - npm i
     - cd react
-    - npm ci
-    - npm run build:prod
+    - yarn
+    - yarn build:prod
     - cd ..
     - gulp sass:prod
-    - tar czf "$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.tar.gz" public/
-    - ./mc cp "$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.tar.gz" minio/web-deploy
+    - zip -r "$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.zip" public/
+    - ./mc cp "$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.zip" minio/web-deploy
     - cp "deploy/$CI_COMMIT_REF_NAME.sh" "$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.sh"
     - ./mc cp "$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.sh" minio/web-deploy
 
 ########################## DEPLOYMENT ##############################
 
 .deploy_base:
-  image: kroniak/ssh-client
   before_script:
+    - apt-get update -y
+    - which ssh-agent || ( apt-get install openssh-client -y )
+    - eval $(ssh-agent -s)
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
+    - echo "$SSH_PRIVATE_KEY" | ssh-add - > ~/.ssh/id_rsa
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-    - MINIO_URL="https://s.rnet.cf/web-deploy/$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.tar.gz"
+    - MINIO_URL="https://s.rnet.cf/web-deploy/$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.zip"
     - MINIO_DEPLOY_SCRIPT="https://s.rnet.cf/web-deploy/$CI_COMMIT_REF_NAME$CI_COMMIT_SHA.sh"
 
 .deploy_premium:

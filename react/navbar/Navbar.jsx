@@ -46,9 +46,9 @@ export default class Navbar extends React.Component {
 
 				<a className="navbar-item" href="/account">
 					{user.avatar ? (
-						<img name="avatar-img" className="image navbar-avatar" alt="Your discord avatar" src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} />
+						<img className="image navbar-avatar" alt="Your discord avatar" src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.jpg`} />
 					) : (
-							<img name="avatar-img" className="image navbar-avatar" alt="Your discord avatar" src="https://discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png" />
+							<img className="image navbar-avatar" alt="Your discord avatar" src="https://discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png" />
 						)}
 				</a>
 				<a className="navbar-item" href="/account">{user.username}</a>
@@ -72,9 +72,9 @@ export default class Navbar extends React.Component {
 			<div className="navbar-item">
 				<a className="navbar-item" href="/account">
 				{user.avatar ? (
-					<img name="avatar-img" className="image navbar-avatar" alt="Your discord avatar" src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} />
+					<img className="image navbar-avatar" alt="Your discord avatar" src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.jpg`} />
 				) : (
-						<img name="avatar-img" className="image navbar-avatar" alt="Your discord avatar" src="https://discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png" />
+						<img className="image navbar-avatar" alt="Your discord avatar" src="https://discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png" />
 					)}
 				</a>
 

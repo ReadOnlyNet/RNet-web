@@ -52,7 +52,7 @@ export default class SettingSelector extends React.Component {
 		// updateModuleSetting(this.props.module, this.props.setting, updateOptions, this.props.label);
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		const options = this.getOptions();
 		this.setState({ options });
 	}
@@ -74,7 +74,7 @@ export default class SettingSelector extends React.Component {
 		});
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		let { automod, channels, roles } = props;
 		const setting = automod[props.setting] || {};
 		const ignoredChannels = setting.ignoredChannels || [];

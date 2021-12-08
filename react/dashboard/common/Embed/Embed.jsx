@@ -36,14 +36,14 @@ export default class Embed extends React.Component {
 		};
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		if (!this.props.embed) {
 			return;
 		}
 		this.setState({ embed: this.getEmbedData(this.props.embed) });
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		if (!props.embed) {
 			return this.defaultEmbed;
 		}

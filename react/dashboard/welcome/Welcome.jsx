@@ -8,7 +8,6 @@ import SettingCheckbox from '../common/SettingCheckbox.jsx';
 import RichSettingSelect from '../common/RichSettingSelect.jsx';
 import Variables from '../common/Variables.jsx';
 import Help from '../common/Help.jsx';
-import WelcomeImageBuilder from './WelcomeImageBuilder.jsx';
 
 export default class Welcome extends React.Component {
     state = {
@@ -19,7 +18,7 @@ export default class Welcome extends React.Component {
         type: 'MESSAGE',
     };
 
-	async UNSAFE_componentWillMount() {
+	async componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/welcome`);
 
@@ -62,19 +61,7 @@ export default class Welcome extends React.Component {
 		} catch (err) {
 			return _showError(err);
 		}
-    }
-    
-    saveImage = async (image) => {
-		let { welcome } = this.state;
-		welcome.image = image;
-		try {
-            updateModuleSetting(this.props.data.module, 'image', image, 'image');
-			await this.setState({ welcome });
-		} catch (err) {
-            console.log(err);
-			return _showError(err);
-		}
-    }
+	}
 
     render() {
 		const module = this.props.data.module;
@@ -89,7 +76,7 @@ export default class Welcome extends React.Component {
             <div className='settings-panel'>
                 <div className='settings-group'>
                     <div className='settings-content is-half'>
-                        <p className='control' style={{display: 'flex', alignItems: 'center'}}>
+                        <p className='control'>
                             <input id='messageType' className='radio'
                                 type='radio'
                                 name='type'
@@ -110,16 +97,6 @@ export default class Welcome extends React.Component {
                                 Embed
                             </label>
                             <Help text='Welcomes the user with an embed.' />
-                            {/* <input id='imageType' className='radio'
-                                type='radio'
-                                name='type'
-                                value='IMAGE'
-                                onChange={this.handleType}
-                                checked={welcome.type === 'IMAGE'} />
-                            <label htmlFor='imageType'>
-                                Image
-                            </label>
-                            <Help text='Welcomes the user with an image.' /> */}
                         </p>
                     </div>
 
@@ -167,14 +144,9 @@ export default class Welcome extends React.Component {
                             cloneButton={false} />
                     )}
                 </div>
-                {welcome.type === 'IMAGE' && (
-                    <WelcomeImageBuilder 
-                    image={welcome.image || {}}
-                    save={this.saveImage} />
-                )}
                 <div className='settings-content'>
                     <h3 className='title is-5'>Variables</h3>
-                    <p>You can use these variables in the message boxes above.</p>
+                    <p>You can use these variables in the message boxes below.</p>
                     <Variables />
                 </div>
             </div>

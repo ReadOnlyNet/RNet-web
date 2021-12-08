@@ -74,11 +74,6 @@ class Auth extends Controller {
 				uri: '/forward',
 				handler: this.forward.bind(this),
 			},
-			csrfToken: {
-				method: 'post',
-				uri: '/csrf',
-				handler: this.csrf.bind(this),
-			}
 		};
 	}
 
@@ -236,32 +231,6 @@ class Auth extends Controller {
 			}
 			return res.redirect('/');
 		});
-	}
-
-	/**
-	 * CSRF token handler
-	 * @param {Bot} bot Bot instance
-	 * @param {Object} req Express request
-	 * @param {Object} res Express response
-	 */
-	csrf(bot, req, res) {
-		if(!req.session) {
-			res.status(401).end();
-			return;
-		}
-
-		if(!req.is('json')) {
-			res.status(500).end();
-			return;
-		}
-
-		// CSRF tokens dont have to be cryptographically safe, only hard to guess
-		const token = Math.random().toString(36).slice(2);
-
-		req.session.csrftoken = token;
-
-		// This request is a POST protected by CORS and is application/json only, so its safe to return a token
-		res.send(token);
 	}
 
 	/**

@@ -21,7 +21,7 @@ export default class SettingsTab extends React.Component {
 		this.updateStateWithProps(this.props);
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.updateStateWithProps(props);
 	}
 

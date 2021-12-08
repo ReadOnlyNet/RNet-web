@@ -22,7 +22,7 @@ export default class TagList extends React.Component {
         this.closeModal = this.closeModal.bind(this);
     }
 
-    async UNSAFE_componentWillMount() {
+    async componentWillMount() {
         try {
             let response = await axios.get(`/api/modules/${this.props.match.params.id}/tags/list`);
             this.tags = response.data.tags || [],

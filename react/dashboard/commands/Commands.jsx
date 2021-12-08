@@ -18,7 +18,7 @@ export default class Commands extends React.Component {
 		};
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.getCommands();
 	}
 

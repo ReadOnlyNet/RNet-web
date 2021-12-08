@@ -20,14 +20,14 @@ export default class RichMultiSelect extends React.Component {
 		}
 	}
 
-	UNSAFE_componentWillMount() {
+	componentWillMount() {
 		this.setState({
 			selectedOptions: this.props.defaultValue || false,
 			options: this.props.options,
 		});
 	}
 
-	UNSAFE_componentWillReceiveProps(props) {
+	componentWillReceiveProps(props) {
 		this.setState({
 			selectedOptions: props.defaultValue || false,
 			options: props.options,
