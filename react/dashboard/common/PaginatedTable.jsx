@@ -28,7 +28,7 @@ export default class PaginatedTable extends React.Component {
 		this.paginateData();
 	}
 
-	async componentWillReceiveProps(props) {
+	async UNSAFE_componentWillReceiveProps(props) {
 		const data = props.data || this.defaultData;
 		const pageLimit = props.pageLimit || 10;
 		await this.setState({ data, pageLimit });
@@ -87,6 +87,12 @@ export default class PaginatedTable extends React.Component {
 				if (typeof val !== 'string') {
 					if (val.props && val.props.children && typeof val.props.children === 'string') {
 						val = val.props.children;
+					} else if (data.valueAccessor) {
+						val = data.valueAccessor(val, i);
+
+						if (val === false) {
+							return false;
+						}
 					} else {
 						return false;
 					}
@@ -186,8 +192,11 @@ export default class PaginatedTable extends React.Component {
 		return (
 			<div className='paginatedTable'>
 				{this.props.search &&
-					<p className="control">
+					<p className="control has-icons-right">
 						<input type="text" onChange={this.handleSearch.bind(this)} placeholder="Search..." className="input" />
+						<span className="icon is-small is-right">
+							<i className="fal fa-search"></i>
+						</span>
 					</p>
 				}
 				<table className='table is-striped'>
@@ -200,7 +209,7 @@ export default class PaginatedTable extends React.Component {
 						{paginatedData && paginatedData.map((row, i) => (
 							<tr key={`row-${i}`}>
 								{row.fields && row.fields.map((field, i) => (
-									<td key={`field-${i}`}>{field.value}</td>
+									<td className={field.className} key={`field-${i}`}>{field.value}</td>
 								))}
 							</tr>
 						))}

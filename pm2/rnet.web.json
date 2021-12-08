@@ -1,13 +1,35 @@
 {
-  "apps": [
-    {
-      "name": "Web",
-      "script": "src/index.js",
-      "watch": false,
-      "ignore_watch" : ["node_modules", ".git", "public", "views", "package.json"],
-      "watch_options": {
-        "followSymlinks": false
-      }
+	"apps": [
+		{
+			"name": "rnet.cf",
+			"script": "src/index.js",
+			"exec_mode": "cluster",
+			"instances": "max",
+			"watch": false,
+			"ignore_watch": [
+				"node_modules",
+				".git",
+				"public",
+				"views",
+				"package.json"
+			],
+			"watch_options": {
+				"followSymlinks": false
+			},
+			"wait-ready": true,
+			"listen_timeout" : 5000
+		}
+	],
+	"deploy": {
+        "production": {
+            "user": "rnet",
+            "host": ["10.12.0.43", "10.12.0.44", "10.12.0.45"],
+            "ref": "origin/master",
+            "repo": "-b master https://github.com/ReadOnlyNet/RNet-web.git",
+            "path": "/home/rnet/deploy/production/",
+            "pre-setup": "rm -rf /home/rnet/deploy/production/*",
+			"post-deploy": "npm i && gulp sass && cd react && yarn && yarn build:prod && cd .. && cp /home/rnet/rnet.cf/.env ./.env && mkdir /home/rnet/rnet.cf-temp/ && cp -rf /home/rnet/deploy/production/source/. /home/rnet/rnet.cf-temp && rm -rf /home/rnet/old.rnet.cf && mv /home/rnet/rnet.cf /home/rnet/old.rnet.cf && mv /home/rnet/rnet.cf-temp /home/rnet/rnet.cf && pm2 restart rnet.cf"
+			
+        }
     }
-  ]
 }

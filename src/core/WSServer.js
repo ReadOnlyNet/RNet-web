@@ -2,7 +2,7 @@
 
 const WebSocketServer = require('ws').Server;
 const Connection = require('./WSConnection');
-const logger = require('./logger');
+const logger = require('./logger').get('WSServer');
 const config = require('./config');
 
 class WSServer {

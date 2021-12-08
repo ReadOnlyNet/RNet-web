@@ -3,16 +3,35 @@ div.message-embedder
 		.control
 			width: calc(50% - 1em);
 			margin-right: 1em;
-			input
-				height: 36px;
-				line-height: 36px;
 
 div.embed-builder
 	border-radius: 6px;
 	textarea
 		padding-top: 0.2em;
-	textarea.builder-description
-		min-height: 100px;
+		&.builder-description
+			min-height: 100px;
+		&.builder-field
+			min-height: 48px;
+	.field-group
+		input[type=checkbox] + label:before
+			background: url(/images/dash/checkbox-off.svg);
+			display: inline-block;
+			width: 15px;
+			height: 15px;
+			content: " ";
+			vertical-align: middle;
+			margin-right: 0.5em;
+			margin-bottom: 2px;
+
+		input[type=checkbox]:checked + label:before
+			background: url(/images/dash/checkbox-on.svg);
+			display: inline-block;
+			width: 15px;
+			height: 15px;
+			content: " ";
+			vertical-align: middle;
+			margin-right: 0.5em;
+			margin-bottom: 2px;
 
 div.embed-modal
 	min-width: 840px;
@@ -58,15 +77,18 @@ span.builder-color-preview
 .control-group-toggle
 	display: block;
 	border-top: solid #777 1px;
-	text-align: center;
+	// text-align: center;
 	margin: 0.6em 0;
-	cursor: pointer;
 	legend
-		padding: 0 0.5em;
+		padding: 0 0.5em 0 0;
 		color: #bbb;
+		cursor: pointer;
+	> div
+		margin: 1em 0.5em 0;
 
 .embed-message-preview
 	background: #36393e;
+	border-radius: 4px;
 	.embed-message-content
 		-moz-user-select: text;
 		-ms-user-select: text;
@@ -96,7 +118,7 @@ span.builder-color-preview
 		margin-right: 20px;
 		min-width: 0;
 	.embed-message-avatar
-		background-image: url('https://cdn.dyno.gg/logos/rnet-256.png');
+		background-image: url('https://cdn.rnet.cf/logos/rnet-256.png');
 		background-size: 40px 40px;
 		background-clip: padding-box;
 		background-color: none;
@@ -113,7 +135,7 @@ span.builder-color-preview
 		opacity: 1;
 		transition: opacity .2s ease;
 		&.is-premium
-			background-image: url('https://cdn.dyno.gg/logos/rnet-premium-256-v3-0.png');
+			background-image: url('https://cdn.rnet.cf/logos/rnet-premium-256-v3-0.png');
 	.embed-message-body
 		h2
 			margin: 0;

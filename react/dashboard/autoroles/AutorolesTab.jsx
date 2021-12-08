@@ -30,7 +30,7 @@ export default class AutorolesTab extends React.Component {
 		this.onRemoveHandler = this.onRemoveHandler.bind(this);
 	}
 
-	async componentWillMount() {
+	async UNSAFE_componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/autoroles`);
 
@@ -59,7 +59,7 @@ export default class AutorolesTab extends React.Component {
 		this.setState({ roles: this.props.roles || [] });
 	}
 
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
 		this.setState({ roles: props.roles || [] });
 	}
 
@@ -96,6 +96,10 @@ export default class AutorolesTab extends React.Component {
 
 		if (!this.state.value || this.state.value === 'Select Role') {
 			return;
+		}
+
+		if (!config.isPremium && this.state.autoroles.length >= 3) {
+			return _showError('You can only have 3 autoroles. Please upgrade to RNet Premium to add more.');
 		}
 
 		try {
@@ -147,7 +151,7 @@ export default class AutorolesTab extends React.Component {
 		const module = this.props.data.module;
 		const roles = this.state.roles;
 
-		return (<div id='autoroles-settings'>
+		return (<div id='autoroles-settings' className='settings-panel'>
 			<div className='settings-group'>
 				<div className='settings-content is-half'>
 					<h3 className='title is-5'>Add Role</h3>
@@ -163,35 +167,31 @@ export default class AutorolesTab extends React.Component {
 						options={roles}
 						onChange={this.onChange} />
 
-					<p className='help-text standout'>
+					{/* <p className='help-text standout'>
 						Note: The RNet role must be <strong>higher</strong> than the role it's assigning.
-					</p>
+					</p> */}
 
 					<p className='control'>
 						<label className='label' htmlFor='wait'>Delay (minutes)</label>
 						<input id='wait' className='input is-expanded' type='text' name='wait' placeholder='10' value={this.state.item.wait} onChange={this.onWaitChange} />
 					</p>
 					<p className='control'>
-						<label className='radio' htmlFor='waitAdd'>
-							<input id='waitAdd'
-								type='radio'
-								className='radio'
-								name='type'
-								value='add'
-								checked={this.state.item.type === 'add'}
-								onChange={this.onTypeChange} />
-							Add Role
-						</label>
-						<label className='radio' htmlFor='waitRemove'>
-							<input id='waitRemove'
-								type='radio'
-								className='radio'
-								name='type'
-								value='remove'
-								checked={this.state.item.type === 'remove'}
-								onChange={this.onTypeChange} />
-							Remove Role
-						</label>
+						<input id='waitAdd'
+							type='radio'
+							className='radio'
+							name='type'
+							value='add'
+							checked={this.state.item.type === 'add'}
+							onChange={this.onTypeChange} />
+						<label className='radio' htmlFor='waitAdd'>Add Role</label>
+						<input id='waitRemove'
+							type='radio'
+							className='radio'
+							name='type'
+							value='remove'
+							checked={this.state.item.type === 'remove'}
+							onChange={this.onTypeChange} />
+						<label className='radio' htmlFor='waitRemove'>Remove Role</label>
 					</p>
 
 					<p className='control'>

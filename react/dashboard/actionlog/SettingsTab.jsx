@@ -24,7 +24,7 @@ export default class SettingsTab extends React.Component {
         });
     }
 
-    componentWillReceiveProps(props) {
+    UNSAFE_componentWillReceiveProps(props) {
         this.setState({
             selectChannel: props.actionlog.selectChannel || false,
             ignoredChannels: props.actionlog.ignoredChannels || [],
@@ -56,13 +56,14 @@ export default class SettingsTab extends React.Component {
         const module = this.props.data.module;
         const actionlog = this.props.actionlog;
         const newAccThreshold = this.state.newAccThreshold;
-        const channels = this.props.channels.filter(c => c.type === 0);
+        const channels = this.props.channels.filter(c => (c.type === 0 || c.type === 4));
 
-        const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
+        const channelOptions = channels.filter(c => c.type === 0).map(c => ({ value: c.id, label: c.name }));
+        const ignoredChannelOptions = channels.map(c => ({ value: c.id, label: c.name }));
         const defaultChannel = channels.find(c => c.id === actionlog.channel);
-        const ignoredChannels = channels.filter(c => c.type === 0 && this.state.ignoredChannels.find(i => i.id === c.id));
+        const ignoredChannels = channels.filter(c => this.state.ignoredChannels.find(i => i.id === c.id));
 
-        return (<div id="actionlog-settings">
+        return (<div id="actionlog-settings" className='settings-panel'>
             <div className='settings-content is-flex'>
                 <SettingCheckbox module={module} setting='selectChannel'
                     friendlyName='Select Channels'
@@ -78,7 +79,7 @@ export default class SettingsTab extends React.Component {
                 <RichNumber
                     min={1}
                     max={30}
-                    label='New Account Age'
+                    label='New Account Age (days)'
                     defaultValue={newAccThreshold || 3}
                     onClick={this.newAccThiccness} />
             </div>
@@ -217,6 +218,12 @@ export default class SettingsTab extends React.Component {
                     text='Member Moved to Voice Channel'
                     selectChannel={this.state.selectChannel}
                     options={channels} />
+                <Setting module={module} setting='invites'
+                    isEnabled={actionlog.invites ? true : false}
+                    value={typeof actionlog.invites === 'boolean' ? defaultChannel : channels.find(c => c.id === actionlog.invites)}
+                    text='Log Invites/Invite Info'
+                    selectChannel={this.state.selectChannel}
+                    options={channels} />
             </div>
             <div className='settings-content'>
                 <h3 className='title is-5'>Ignored Channels</h3>
@@ -228,7 +235,7 @@ export default class SettingsTab extends React.Component {
                     text='Ignored Channels'
                     defaultValue={ignoredChannels}
                     defaultOption='Select Channel'
-                    options={channelOptions}
+                    options={ignoredChannelOptions}
                     onChange={this.handleIgnoredChannels} />
             </div>
         </div>);

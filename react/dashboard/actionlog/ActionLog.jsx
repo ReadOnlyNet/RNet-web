@@ -5,18 +5,18 @@ import ModuleSettings from '../common/ModuleSettings.jsx';
 import SettingsTab from './SettingsTab.jsx';
 import Loader from './../common/Loader.jsx';
 
-export default class ActionLog extends ModuleSettings {
+export default class ActionLog extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			actionlog: {},
 			channels: [],
 			isLoading: true,
-			newAccThreshold: 0
+			newAccThreshold: 0,
 		};
 	}
 
-	async componentWillMount() {
+	async UNSAFE_componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/actionlog`);
 
@@ -32,13 +32,10 @@ export default class ActionLog extends ModuleSettings {
 	}
 
     render() {
-		if (this.state.isLoading) {
-			return <Loader />;
-		}
-
-		return (<div id='module-actionlog' className='module-content module-settings'>
-			<h3 className='title is-4'>Action Log {this.ModuleToggle}</h3>
-			<SettingsTab {...this.props} actionlog={this.state.actionlog} channels={this.state.channels} newAccThreshold={this.state.newAccThreshold}/>
-		</div>);
+		return (
+			<ModuleSettings {...this.props} name='actionlog' title='Action Log' isLoading={this.state.isLoading}>
+				<SettingsTab {...this.props} actionlog={this.state.actionlog} channels={this.state.channels} newAccThreshold={this.state.newAccThreshold}/>
+			</ModuleSettings>
+		);
     }
 }

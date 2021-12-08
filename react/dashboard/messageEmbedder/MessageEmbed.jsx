@@ -8,6 +8,7 @@ export default class MessageEmbed extends React.Component {
 		message: this.defaultMessage,
 		channels: [],
 		selectedOption: false,
+		isCloned: false,
 	};
 
 	get defaultMessage() {
@@ -18,17 +19,28 @@ export default class MessageEmbed extends React.Component {
 			name   : '',
 			time   : new Date(),
 			embed  : false,
+		};
+	}
+
+	UNSAFE_componentWillMount() {
+		let props = { ...this.props };
+		if (this.props.getCloned) {
+			props.message = this.props.getCloned();
+			props.isCloned = true;
 		}
+		this.updateState(props);
 	}
 
-	componentWillMount() {
-		this.updateState(this.props);
-	}
-
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
+		let message;
+		if (!props.messsage && this.state.isCloned) {
+			message = this.defaultMessage;
+		} else {
+			message = props.message || this.state.message || this.defaultMessage
+		}
 		this.updateState({
 			channels: props.channels || this.state.channels,
-			message: props.message || this.state.message || this.defaultMessage,
+			message: message,
 		});
 	}
 
@@ -47,6 +59,7 @@ export default class MessageEmbed extends React.Component {
 			roles: props.roles || [],
 			selectedOption: selectedOption || false,
 			message,
+			isCloned: props.isCloned || false,
 		});
 	}
 
@@ -81,9 +94,17 @@ export default class MessageEmbed extends React.Component {
 		message.embed = embed;
 		message.channel = message.channel ? message.channel.id || message.channel : false;
 		await this.setState({ message });
-		await editMessageEmbed(message);
-		if (this.props.onSave) {
-			this.props.onSave(message);
+		
+		try {
+			const response = await editMessageEmbed(message);
+			message = response.data;
+			this.setState({ message });
+
+			if (this.props.onSave) {
+				this.props.onSave(message);
+			}
+		} catch (err) {
+			_showError('Something went wrong.');
 		}
 	}
 
@@ -103,8 +124,14 @@ export default class MessageEmbed extends React.Component {
 		}
 	}
 
+	cloneEmbed = async () => {
+		if (this.props.onClone) {
+			this.props.onClone(this.state.message);
+		}
+	}
+
 	render() {
-		const { message, roles, selectedOption } = this.state;
+		const { message, roles, selectedOption, isCloned } = this.state;
 		const channels = this.state.channels.filter(c => c.type === 0);
 		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
 
@@ -116,8 +143,14 @@ export default class MessageEmbed extends React.Component {
 			}
 		});
 
-		const channelDisabled = !!(message && message.embed);
+		const channelDisabled = !!(message && message.embed && !isCloned);
 		const channelOption = (messageChannel && { value: messageChannel.id, label: messageChannel.name }) || selectedOption;
+
+		const showIcon = (
+			<span className='icon is-link'>
+				<i className='fa fa-plus-circle'></i>
+			</span>
+		);
 
 		return (<div className='message-embedder'>
 			<div className='settings-content is-flex'>
@@ -140,10 +173,21 @@ export default class MessageEmbed extends React.Component {
 					options={channelOptions}
 					disabled={channelDisabled}
 					onChange={this.handleChannel} />
+				{this.props.debug && message.message && (
+					<p className='control'>
+						<label className='label' htmlFor='messageID'>Message ID</label>
+						<input id='messageID'
+							className='input is-expanded'
+							type='text'
+							placeholder='Message ID'
+							value={message.message || ''}
+							onChange={this.handleInput.bind(this, 'message')} />
+					</p>
+				)}
 			</div>
 			<div className='settings-content'>
 				<h3 className='title is-5'>Embed</h3>
-				{message && message.embed ?
+				{message && message.embed && !isCloned ?
 					(<EmbedBuilder
 						roles={roles}
 						channels={channels}
@@ -151,14 +195,18 @@ export default class MessageEmbed extends React.Component {
 						isPremium={this.props.data.isPremium}
 						deleteButton={true}
 						onSave={this.editEmbed}
-						onDelete={this.deleteEmbed} />) :
+						onDelete={this.deleteEmbed}
+						onClone={this.cloneEmbed}
+						cloneButton={true} />) :
 					(<EmbedBuilder
 						roles={roles}
 						channels={channels}
+						embed={(isCloned && message) ? message.embed : -1}
 						isPremium={this.props.data.isPremium}
 						cancelButton={true}
 						onCancel={this.cancelEmbed}
-						onSave={this.createEmbed} />)}
+						onSave={this.createEmbed}
+						cloneButton={false} />)}
 			</div>
 		</div>);
 	};

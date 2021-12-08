@@ -17,7 +17,7 @@ export default class RanksTab extends React.Component {
 		this.onRemoveHandler = this.onRemoveHandler.bind(this);
 	}
 
-	async componentWillMount() {
+	async UNSAFE_componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/ranks`);
 			this.setState({ ranks: response.data.ranks, roles: response.data.roles, disableMulti: response.data.disableMulti });
@@ -57,7 +57,7 @@ export default class RanksTab extends React.Component {
 		const module = this.props.data.module;
 		const roles = this.state.roles.filter(r => !this.state.ranks.find(i => i.id === r.id));
 
-		return (<div id='autoroles-settings'>
+		return (<div id='autoroles-settings' className='settings-panel'>
 			<div className='settings-group'>
 				<div className='settings-content is-half'>
 					<h3 className='title is-5'>Add Rank</h3>

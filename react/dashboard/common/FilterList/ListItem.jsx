@@ -5,11 +5,11 @@ export default class ListItem extends React.Component {
 		item: {},
 	}
 
-	componentWillMount() {
+	UNSAFE_componentWillMount() {
 		this.setState({ item: this.props.item });
 	}
 
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
 		this.setState({ item: props.item });
 	}
 
@@ -22,7 +22,7 @@ export default class ListItem extends React.Component {
 		return (
 			<li className='filter-list-item' key={item.value}>
 				{item.value}
-				{this.props.removable ? <a className='button is-danger list-item-remove' onClick={this.handleRemove}>Remove</a> : ''}
+				{this.props.removable ? <a className='button is-info list-item-remove' onClick={this.handleRemove}>Remove</a> : ''}
 			</li>
 		);
 	}

@@ -1,10 +1,7 @@
-/* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
 'use strict';
 
 const Redis = require('ioredis');
-const config = require('./config');
-const logger = require('./logger');
+const logger = require('./logger').get('redis');
 
 const client = new Redis({
         name: 'master',
@@ -17,11 +14,10 @@ const client = new Redis({
 });
 
 client.on('ready', () => {
-	logger.info('Connected to redis.');
+        logger.debug('Connected to redis.');
 });
 
 client.on('error', err => {
-        console.log(err);
 	logger.error(err);
 });
 

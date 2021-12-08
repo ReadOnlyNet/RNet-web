@@ -15,7 +15,7 @@ export default class Select extends React.Component {
         this.setState({ value: this.props.defaultValue });
 	}
 
-    componentWillReceiveProps(props) {
+    UNSAFE_componentWillReceiveProps(props) {
         this.setState({ value: props.defaultValue });
     }
 

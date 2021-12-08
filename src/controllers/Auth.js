@@ -3,17 +3,16 @@
 const superagent = require('superagent');
 const Controller = require('../core/Controller');
 const config = require('../core/config');
-const logger = require('../core/logger');
+const logger = require('../core/logger').get('Auth');
 const utils = require('../core/utils');
-
-const perms = config.permissions;
+const { models } = require('../core/models');
 
 const redirect_base = (!config.site.port || parseInt(config.site.port) === 80) ?
 	`${config.site.host}` :
 	`${config.site.host}:${config.site.port}`;
 
 const authUrl = `https://discordapp.com/oauth2/authorize?redirect_uri=${redirect_base}%2Freturn` +
-	`&scope=identify guilds email&response_type=code&client_id=${config.client.id}`;
+	`&scope=identify guilds email&response_type=code&prompt=none&client_id=${config.client.id}`;
 const tokenUrl = 'https://discordapp.com/api/oauth2/token';
 
 class Auth extends Controller {
@@ -40,13 +39,25 @@ class Auth extends Controller {
 			},
 			beforeStaging: {
 				method: 'use',
-				uri: '*',
+				uri: [
+					'/commands/',
+					'/partner',
+					'/faq',
+					'/team',
+					'/status',
+					'/upgrade',
+				],
 				handler: this.beforeStaging.bind(this),
 			},
 			auth: {
 				method: 'get',
 				uri: '/auth',
 				handler: this.auth.bind(this),
+			},
+			api: {
+				method: 'get',
+				uri: '/api/auth',
+				handler: this.api.bind(this),
 			},
 			logout: {
 				method: 'get',
@@ -63,6 +74,11 @@ class Auth extends Controller {
 				uri: '/forward',
 				handler: this.forward.bind(this),
 			},
+			csrfToken: {
+				method: 'post',
+				uri: '/csrf',
+				handler: this.csrf.bind(this),
+			}
 		};
 	}
 
@@ -80,13 +96,16 @@ class Auth extends Controller {
 				redirectTo = `/manage/${authServer}`;
 
 			delete req.session.authServer;
+			try {
+				const guild = await this.client.getRESTGuild(authServer);
 
-			const guild = await this.client.guild.getGuild(authServer);
-			if (guild) {
-				return res.redirect(redirectTo);
-			}
+				if (guild) {
+					return res.redirect(redirectTo);
+				}
+			} catch (err) { }
 		}
 
+		res.locals.scripts.push('/js/react/navbar.js');
 		res.locals.config = config;
 
 		if (!req.session || !req.session.auth || res.locals.user) return next();
@@ -117,26 +136,73 @@ class Auth extends Controller {
 
 	async beforeAll(bot, req, res, next) {
 		if (!req.session || !req.session.auth || !req.session.lastAuth) return next();
+
+		if (req.session.isBanned) {
+			return this.renderError(req, res, 403);
+		}
+
 		if ((Date.now() - req.session.lastAuth) < 60000) return next();
 
-		const token = req.session.auth.access_token;
+		if (req.session.user) {
+			try {
+				const match = await models.RNet.findOne({ bannedUsers: req.session.user.id }, { bannedUsers: 1 }).lean().exec();
+				if (match) {
+					req.session.isBanned = true;
+					return this.renderError(req, res, 403);
+				}
+			} catch (err) {
+				console.error(err);
+				return this.renderError(req, res, 500);
+			}
+		}
 
+		if (req.query && req.query.testban) {
+			return this.renderError(req, res, 403);
+		}
+
+		const token = req.session.auth.access_token;
 		return this.fetchUser(token, req, res, next);
 	}
 
-	beforeStaging(bot, req, res, next) {
+	api(bot, req, res) {
+		if (!req.session || !req.session.auth) return next();
+		if (!req.session.user) return next();
+		return res.send({
+			user: req.session.user,
+			guilds: req.session.guilds,
+		});
+	}
+
+	async beforeStaging(bot, req, res, next) {
 		if (!config.staging) {
 			return next();
 		}
 
-		if (!req.session || !req.session.user ||
-			!config.global || !config.global.stagingAccess) {
-				return res.redirect('https://www.rnet.cf');
-			}
+		if (config.global.allowStaffDashAccess) {
+			return next();
+		}
 
-		if (!config.global.stagingAccess.includes(req.session.user.id)) {
+		if (!req.session || !req.session.user || !config.global.staffDashAllowedRoles) {
 			return res.redirect('https://www.rnet.cf');
 		}
+
+		const dynoMember = await this.client.getRESTGuildMember('538530739017220107', req.session.user.id);
+
+		if (dynoMember.roles) {
+			const allowed = dynoMember.roles.some((r) => config.global.staffDashAllowedRoles.includes(r));
+			if (!allowed) {
+				return res.redirect('https://www.rnet.cf');
+			}
+		}
+
+		// if (!req.session || !req.session.user ||
+		// 	!config.global || !config.global.stagingAccess) {
+		// 		return res.redirect('https://www.rnet.cf');
+		// 	}
+
+		// if (!config.global.stagingAccess.includes(req.session.user.id)) {
+		// 	return res.redirect('https://www.rnet.cf');
+		// }
 
 		return next();
 	}
@@ -148,7 +214,7 @@ class Auth extends Controller {
 	 * @param {Object} res Express response
 	 */
 	auth(bot, req, res) {
-		if (req.session.auth) {
+		if (req.session && req.session.auth) {
 			return res.redirect('/');
 		}
 		res.locals.redirectURI = authUrl;
@@ -170,6 +236,32 @@ class Auth extends Controller {
 			}
 			return res.redirect('/');
 		});
+	}
+
+	/**
+	 * CSRF token handler
+	 * @param {Bot} bot Bot instance
+	 * @param {Object} req Express request
+	 * @param {Object} res Express response
+	 */
+	csrf(bot, req, res) {
+		if(!req.session) {
+			res.status(401).end();
+			return;
+		}
+
+		if(!req.is('json')) {
+			res.status(500).end();
+			return;
+		}
+
+		// CSRF tokens dont have to be cryptographically safe, only hard to guess
+		const token = Math.random().toString(36).slice(2);
+
+		req.session.csrftoken = token;
+
+		// This request is a POST protected by CORS and is application/json only, so its safe to return a token
+		res.send(token);
 	}
 
 	/**

@@ -1,52 +1,75 @@
-<section class="section" style="background-color: transparent">
-  <div class="container ">
-    <footer>
-      <ul class="left">
-        <li>
-          <i class="far fa-envelope fa-lg" aria-hidden="true"></i>
-          <a class="link is-info left" href="/discord" target="_blank" title="RNet Discord Server">Support Server</a>
-        </li>
-        <li>
-          <i class="fab fa-twitter fa-lg"></i>
-          <a class="link is-info left" href="https://twitter.com/DynoDiscord" target="_blank">Twitter</a>
-        </li>
-        <li>
-          <i class="fas fa-question fa-lg" aria-hidden="true"></i>
-          <a class="link is-info faq" href="/faq" title="Frequently Asked Questions">FAQ</a>
-        </li>
-      </ul>
-      <ul class="middle">
-        <li>
-          <a class="link is-info add-dyno" href="/invite" title="Add RNet">
-            <i class="far fa-plus-square fa-lg right" aria-hidden="true" style="color: #336fd5"></i>
-            <strong>Add RNet</strong>
+{{#*inline "socialSection"}}
+    <div class="column is-6-mobile is-3-desktop" style="display: block; text-align: left;">
+      <img class="footer-logo" src="https://s.rnet.cf/web-assets/footer/logo%402x.png">
+      <div class="social-text">
+        <h3>Get in Touch</h3>
+      </div>
+      <div class="social-icons">
+        <a class="social-link" href="https://discord.gg/dyno" >
+          <img class="social-icon discord-icon" src="https://s.rnet.cf/web-assets/footer/discord.png">
+        </a>
+        <a class="social-link" href="https://twitter.com/DynoDiscord" >
+          <img class="social-icon discord-icon" src="https://s.rnet.cf/web-assets/footer/twitter.png">
+        </a>
+        <a class="social-link" href="mailto:team@rnet.cf" >
+          <img class="social-icon discord-icon" src="https://s.rnet.cf/web-assets/footer/mail.png">
+        </a>
+      </div>
+      <span class="copyright-notice">
+        © 2019 Solomid Corporation. All rights reserved.
+      </span>
+    </div>
+{{/inline}}
+
+{{#*inline "linksSection"}}
+    <div class="column is-12-mobile is-3-desktop" style="display: block; text-align: left;">
+      <div class="columns is-mobile">
+        <div class="column is-6">
+          <span class="footer-link-title">RNet</span>
+          <a href="/bot" title="RNet Bot" class="footer-link">RNet Bot</a>
+          <a href="/servers" title="Public Servers" class="footer-link">Public Servers</a>
+          <a href="/commands" title="Bot Commands" class="footer-link">Bot Commands</a>
+          <a href="/faq" title="FAQ" class="footer-link">FAQ</a>
+          <a href="/upgrade" title="Get Premium" class="footer-link">Get Premium</a>
+          <a href="/discord" title="RNet Support Server" class="footer-link">RNet Support Server</a>
+          <a href="/terms" title="Terms of Service" class="footer-link">Terms of Service</a>
+          <a href="/privacy" title="Privacy Policy" class="footer-link">Privacy Policy</a>
+        </div>
+        <div class="column is-6">
+          <span class="footer-link-title">Blitz Network</span>
+          <a href="/" class="footer-link">RNet by Blitz</a>
+          <a href="http://blitz.gg/" class="footer-link">Blitz for League</a>
+          <a href="http://blitz.gg/fortnite" class="footer-link">Blitz for Fortnite</a>
+        </div>
+      </div>
+      {{!-- <a href="#" class="footer-link"></a> --}}
+    </div>
+{{/inline}}
+
+{{#*inline "getPremiumSection"}}
+    <div class="column is-6-mobile is-3-desktop" style="display: block; text-align: right;">
+        <div class="buttons">
+          <a class="button is-info is-outlined" href="/upgrade" title="Get Premium">
+            Get Premium
           </a>
-        </li>
-        <li>
-          <a class="link is-info premium-button" href="/upgrade" title="RNet Premium">
-            <strong>Get premium</strong>
-          </a>
-        </li>
-        <li>
-          <a class="link is-info underlined" href="/team" title="RNet Team">RNet is made by
-            <strong>Nooblance#0002</strong> and contributors
-          </a>
-        </li>
-      </ul>
-      <ul class="right">
-        <li>
-          <a class="link is-info right" href="/terms" title="Terms of Service">Terms of Service</a>
-          <i class="fas fa-terminal fa-lg" aria-hidden="true"></i>
-        </li>
-        <li>
-          <a class="link is-info right" href="/commands" title="Commands">Commands</a>
-          <i class="fas fa-gavel fa-lg" aria-hidden="true"></i>
-        </li>
-        <li>
-          <a class="link is-info right" href="/privacy" title="Privacy Policy">Privacy Policy</a>
-          <i class="fas fa-user-secret fa-lg" aria-hidden="true"></i>
-        </li>
-      </ul>
-    </footer>
-  </div>
-</section>
+        </div>
+    </div>
+{{/inline}}
+
+
+<footer class="footer">
+    <div class="content is-hidden-mobile">
+      <div class="columns is-centered">
+        {{> socialSection}}
+        {{> linksSection}}
+        {{> getPremiumSection}}
+      </div>
+    </div>
+    <div class="content is-hidden-tablet">
+      <div class="columns is-mobile is-multiline">
+        {{> linksSection}}
+        {{> socialSection}}
+        {{> getPremiumSection}}
+      </div>
+    </div>
+</footer>

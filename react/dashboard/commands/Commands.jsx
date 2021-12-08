@@ -1,7 +1,8 @@
 import React from 'react';
 import axios from 'axios';
 import CommandGroup from './CommandGroup.jsx';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { NavLink, Route } from 'react-router-dom';
+// import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { updateCommandToggle } from './service/CommandService';
 import Loader from '../common/Loader.jsx';
 
@@ -17,7 +18,7 @@ export default class Commands extends React.Component {
 		};
 	}
 
-	componentWillMount() {
+	UNSAFE_componentWillMount() {
 		this.getCommands();
 	}
 
@@ -56,15 +57,53 @@ export default class Commands extends React.Component {
 		return (<div id="commands" className="module-content">
 			<h3 className="title is-4">Commands</h3>
 			<div className="settings-top">
-				<Tabs selectedTabClassName="is-active" selectedTabPanelClassName="is-active">
+				{/* <Tabs selectedTabClassName="is-active" selectedTabPanelClassName="is-active"> */}
 					<div className='tabs'>
-						<TabList className="tabs">
+						<ul className='tabs'>
+							{commands.map((c, i) => {
+								const url = this.props.match.url.replace(/\/$/, '');
+								if (i === 0) {
+									return (
+										<li key={i}><NavLink exact to={`${url}`} className='subtab-control' activeClassName='is-active'>{c.name}</NavLink></li>
+									);
+								} else {
+									return (
+										<li key={i}><NavLink to={`${url}/${c.name.toLowerCase()}`} className='subtab-control' activeClassName='is-active'>{c.name}</NavLink></li>
+									);
+								}
+							})}
+						</ul>
+						{/* <TabList className="tabs">
 							{commands.map((c, i) => (
 								<Tab key={i}><a className="subtab-control">{c.name}</a></Tab>)
 							)}
-						</TabList>
+						</TabList> */}
 					</div>
-					{commands.map((c, i) => (
+					{commands.map((c, i) => {
+						const path = this.props.match.path;
+						if (i === 0) {
+							return (
+								<Route key={i} exact path={`${path}`} render={(props) => (
+									<CommandGroup
+										key={'cmd-group-' + c.name}
+										group={c}
+										onToggle={this.toggleCommand}
+										getCommands={this.getCommands.bind(this)} {...this.state} {...this.props} />
+								)} />
+							);
+						} else {
+							return (
+								<Route key={i} exact path={`${path}/${c.name.toLowerCase()}`} render={(props) => (
+									<CommandGroup
+										key={'cmd-group-' + c.name}
+										group={c}
+										onToggle={this.toggleCommand}
+										getCommands={this.getCommands.bind(this)} {...this.state} {...this.props} />
+								)} />
+							);
+						}
+					})}
+					{/* {commands.map((c, i) => (
 						<TabPanel className='flex-containers' key={i}>
 							<CommandGroup
 								key={'cmd-group-' + c.name}
@@ -72,8 +111,8 @@ export default class Commands extends React.Component {
 								onToggle={this.toggleCommand}
 								getCommands={this.getCommands.bind(this)} {...this.state} {...this.props} />
 						</TabPanel>))
-					}
-				</Tabs>
+					} */}
+				{/* </Tabs> */}
 			</div>
 		</div>
 		);

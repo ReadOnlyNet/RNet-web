@@ -21,7 +21,7 @@ export default class RichCommandCheckbox extends React.Component {
 		this.updateState(this.props);
 	}
 
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
 		this.updateState(props);
 	}
 
@@ -106,12 +106,12 @@ export default class RichCommandCheckbox extends React.Component {
 		const { command } = this.props;
 
 		const roles = this.state.roles;
-		const channels = this.state.channels.filter(c => c.type === 0);
+		const channels = this.state.channels.filter(c => (c.type === 0 || c.type === 4));
 		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
 		const roleOptions = roles.map(r => ({ value: r.id, label: r.name }));
 
-		const allowedChannels = channels.filter(c => c.type === 0 && this.state.allowedChannels.find(i => (i && (i.id || i)) === c.id));
-		const ignoredChannels = channels.filter(c => c.type === 0 && this.state.ignoredChannels.find(i => (i && (i.id || i))  === c.id));
+		const allowedChannels = channels.filter(c => this.state.allowedChannels.find(i => (i && (i.id || i)) === c.id));
+		const ignoredChannels = channels.filter(c => this.state.ignoredChannels.find(i => (i && (i.id || i))  === c.id));
 
 		const allowedRoles = roles.filter(r => this.state.allowedRoles.find(i => (i && (i.id || i)) === r.id));
 		const ignoredRoles = roles.filter(r => this.state.ignoredRoles.find(i => (i && (i.id || i)) === r.id));
@@ -168,27 +168,25 @@ export default class RichCommandCheckbox extends React.Component {
 		return (
 			<div className={`control rich-command is-pulled-left ${this.props.className || ''}${this.props.disabled ? 'locked' : (this.state.isEnabled ? 'enabled' : 'disabled')}`}>
 				<span>
-					<input
+					{/* <input
 						type='checkbox'
 						checked={this.state.isEnabled}
 						onChange={this.onChange}
 						disabled={this.props.disabled}
-						/>
+						/> */}
 					<h4 className="title is-5" htmlFor={this.props.text}>{this.props.text}</h4>
+					<div className='command-toggle' onClick={this.onChange}>
+						<input
+							className=''
+							type='checkbox'
+							checked={this.state.isEnabled} 
+							onChange={this.onChange} />
+						<label className='checkbox' htmlFor={this.props.text}></label>
+					</div>
 				</span>
 				{this.props.helpText ? (<p className="help-text">{this.props.helpText}</p>) : ''}
 				{!this.props.disabled ? (
 					<div className='controls'>
-						<div className='control command-toggle' onClick={this.onChange}>
-							<input
-								className=''
-								type='checkbox'
-								checked={this.state.isEnabled} 
-								onChange={this.onChange} />
-							<label className='checkbox' htmlFor={this.props.text}>
-								{this.state.isEnabled ? 'Disable' : 'Enable'}
-							</label>
-						</div>
 						<a className='control command-settings' onClick={this.openSettings}>
 							<span className='icon is-link'>
 								<i className='fa fa-cog'></i>
