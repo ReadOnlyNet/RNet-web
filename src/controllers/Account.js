@@ -964,7 +964,7 @@ class Account extends Controller {
 				channel: '231089658971291648',
 				userid: req.session.user.id,
 				user: { id: req.session.user.id, name: req.session.user.username, discrim: req.session.user.discriminator },
-				mod: '155149108183695360',
+				mod: '550869101170655233',
 				type: 'role',
 				role: '265342465483997184',
 			};

@@ -3,7 +3,7 @@ import React from 'react';
 import OauthPopup from '../../common/OauthPopup.jsx';
 
 export default class Patreon extends React.Component {
-	oauthURL = `https://www.patreon.com/oauth2/authorize?response_type=code&client_id=e4bf3c3950d08803fcdd86f1a653ceb21ee94d9760c944ef7e9b16723234a8c2&redirect_uri=http://localhost.com:8000/patreon`;
+	oauthURL = `https://www.patreon.com/oauth2/authorize?response_type=code&client_id=<CLIENT_ID>&redirect_uri=http://localhost.com:8000/patreon`;
 		// &state=<optional string>`;
 
 	onCode = async (code, params) => {
