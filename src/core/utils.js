@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-escape */
 'use strict';
 
 const fs = require('fs');

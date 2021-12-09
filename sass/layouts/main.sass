@@ -1,10 +1,124 @@
-@import "../core/base.sass";
+@import "../core/base.scss";
+@import "../core/common.sass";
+
+.container
+	&.circles
+		display: block;
+		background-image: url('https://s.rnet.cf/web-assets/landing/background-circle.svg');
+		background-repeat: no-repeat;
+		background-position: center center;
+		background-size: contain;
+		margin-top: 40px;
+
+		.home-description 
+			text-align: center;
+
+		.description-title
+			color: #fff;
+			max-width: 700px;
+			margin: auto;
+			font-weight: 700;
+			line-height: 61px;
+
+		.description-text
+			max-width: 600px;
+			margin: auto;
+			opacity: 0.75;
+			font-weight: 200;
+			background-color: $body-background;
+			padding: 40px;
+			padding-bottom: 50px;
+		
+		.columns
+			margin-top: 50px;
+			>div
+				max-width: 500px;
+				margin-left: 10px;
+				margin-right: 10px;
+				&:nth-child(1)
+					text-align: left;
+				
+				&:nth-child(2)
+					text-align: right;
+			
+			.carbon-wrapper
+				max-width: 330px;
+
+			.carbon-wrap
+				background-color: #222C45;
+				border-radius: 5px;
+
+		.home-logo
+			margin-top: 20px;
+			margin-bottom: 60px;
+		
+		.button
+			margin-left: 10px;
+			margin-right: 10px;
+
+		
+		@include until($tablet)
+			background-repeat: repeat-y;
+
+			.columns
+				>div
+					padding-right: 30px;
+					padding-left: 30px;
+					margin: auto;
+					min-width: 80%;
+					&:nth-child(1)
+						text-align: center;
+				
+					&:nth-child(2)
+						text-align: center;
+						display: flex;
+						justify-content: center;
+						margin-top: 30px;
+
+.features-section
+	margin-top: -80px;
+
+	h3
+		text-align: center;
+	
+	h5
+		margin-bottom: 60px;
+		
+	.features
+		display: flex;
+		justify-content: center;
+		align-content: center;
+		align-items: center;
+		justify-items: center;
+		width: 100%;
+		flex-wrap: wrap;
+		margin-top: 40px;
+		margin-bottom: 60px;
+
+		.feature
+			background: linear-gradient(-45deg, #1A2737 0%, #192534 100%);
+			border-radius: 5px 5px 5px 5px;
+			height: 281px;
+			width: 231px;
+			margin-left: 20px;
+			margin-right: 20px;
+			padding: 0px 20px;
+
+			h4
+				margin-bottom: 10px;
+
+			.feature-card-icon
+				margin-top: -15px;
+				margin-bottom: 22px;
+
+.getting-started
+	margin-top: 40px;
 
 body
 	display: flex;
 	min-height: 100vh;
 	flex-direction: column;
-	font-family: 'Open Sans', sans-serif;
+	font-family: 'Maison Neue', sans-serif;
 	margin: 0;
 	background-color: $body-background;
 
@@ -14,74 +128,6 @@ body
 
 .section, .box
 	background-color: $background;
-
-.top-bar
-	background-color: $new-background;
-	height: 80px;
-	padding: 0 1.2rem;
-	margin-bottom: 0 !important;
-
-	a
-		color: $topnav-color;
-		text-shadow: 1px 1px rgba(0,0,0,0.2);
-	a:hover
-		color: $topnav-color;
-		text-decoration: underline;
-	.image.is-32x32
-		border-radius: 25%;
-	.title
-		min-height: 80px;
-		line-height: 80px;
-		margin-bottom: 0;
-		margin-right: 1.5rem;
-		margin-left: .3rem;
-		color: $text;
-		font-weight: 600;
-	.title a
-		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		word-break: normal;
-		&:hover
-			border: none;
-		img
-			width: 44px;
-			height: 44px;
-			margin: 18px 0 0;
-	.nav
-		border-left: solid lighten($new-background, 18%) 1px;
-		padding-left: 1.5rem;
-		padding-top: 0.3rem;
-
-.nav
-	background-color: inherit;
-.nav a, .level-right a
-	font-size: 14px;
-	text-transform: uppercase;
-	letter-spacing: -0.2px;
-.nav-menu
-	background-color: inherit;
-.nav a
-	padding: 0;
-.nav-menu a
-	padding: 10px;
-	color: $topnav-color;
-	&.button
-		margin-top: 6px;
-		background-color: $top-btn;
-		&:hover
-			background-color: $top-btn-hover;
-	// &.upgrade
-	// 	color: $info;
-	// 	&:hover
-	// 		color: #fff;
-
-.button.is-info
-	margin-right: 0.5em;
-	background-color: $info-btn;
-	&:hover
-		background-color: $info-btn-hover;
-		text-decoration: none;
 
 .page-wrapper
 	min-height: 100%;
@@ -105,12 +151,9 @@ body
 		font-size: 18px;
 		text-align: center;
 		margin: 1em 0;
-	a
-		padding: 0 1.5em;
-		text-transform: uppercase;
 
 .hero
-	background-color: $hero-background;
+	background-color: #161E2D;
 	.hero-content
 		max-width: 50%;
 		margin: auto;
@@ -118,58 +161,6 @@ body
 		margin: 0 0 1em;
 		.title
 			margin: 0.3em 0;
-
-// .footer
-// 	width: 100%;
-// 	padding: 0;
-// 	// padding: 30px 0 20px;
-// 	background-color: $footer-background;
-// 	border-bottom: none;
-// 	li
-// 		margin-bottom: 15px;
-// 	ul 
-// 		display: inline-table;
-// 		list-style: none;
-// 		margin: 0px 25px 0px 25px;
-// 	a.faq 
-// 		margin-left: 13px;
-// 		border-bottom: none;
-// 	ul.left
-// 		float: left;
-// 	ul.right
-// 		float: right;
-// 		@media screen and (max-width: $break-mobile)
-// 			position: relative;
-// 			bottom: 234px;
-// 	a.left, ul.left
-// 		text-align: left;
-// 		margin-left: 5px;
-// 		border-bottom: none;
-// 	a.right, ul.right
-// 		text-align: right;
-// 		margin-right: 5px;
-// 		border-bottom: none;
-// 	a.add-dyno
-// 		margin-left: 5px;
-// 		border-bottom: none;
-// 		strong, i.right
-// 			color: #336fd5;
-// 	a.premium-button
-// 		border: 1px solid #ff7f00 !important;
-// 		transition: all 500ms ease;
-// 		color: #ff7f00;
-// 		border-radius: 5px;
-// 		padding: 7px; 
-// 		&:hover 
-// 			border-radius: 15px;
-// 		strong
-// 			color: #ff7f00;
-
-// .footer, .page-wrapper:after
-	// height: 60px;
-
-// .tabs li.is-active a
-	// background-color: $secondary;
 
 .tab-content, .subtab-content
 	display: none;

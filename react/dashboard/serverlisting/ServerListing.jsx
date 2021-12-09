@@ -2,6 +2,7 @@
 import axios from 'axios';
 import React from 'react';
 import Loader from '../common/Loader.jsx';
+import Modal from 'react-responsive-modal';
 import Help from '../common/Help.jsx';
 import List from '../../serverListing/List.jsx';
 import SketchPicker from 'react-color';
@@ -23,7 +24,20 @@ export default class ServerListing extends React.Component {
 		isSaving: false,
 		justSaved: false,
 		selectedInviteChannel: {},
+		selectedLanguage: {},
 		channels: [],
+		unlistedModalOpen: false,
+		languages: [
+			'English',
+			'Français',
+			'Deutsch',
+			'Português',
+			'Türkçe',
+			'Русский',
+			'Español',
+			'Nederlands',
+			'Polski',
+		],
 	};
 
 	componentWillMount() {
@@ -43,6 +57,12 @@ export default class ServerListing extends React.Component {
 				}
 			}
 
+			let selectedLanguage = { label: 'English', value: 'English' };
+
+			if (response.data.server.language) {
+				selectedLanguage = { label: response.data.server.language, value: response.data.server.language }
+			}
+
 			this.setState({
 				serverInfo: response.data.server,
 				originalServerInfo: response.data.server,
@@ -50,6 +70,7 @@ export default class ServerListing extends React.Component {
 				isLoading: false,
 				channels: response.data.channels,
 				selectedInviteChannel: defaultInviteChannel,
+				selectedLanguage,
 			});
 		} catch (e) {
 			this.setState({ error: 'Failed to get data, try again later' });
@@ -134,7 +155,18 @@ export default class ServerListing extends React.Component {
 		this.updateServerInfoState('listed', !this.state.serverInfo.listed);
 	}
 
-	handleSave = async (e) => {
+	showUnlistedModal = (show = true) => {
+		this.setState({ unlistedModalOpen: show });
+	}
+
+	handleSave = async (e, confirmedUnlistedSave = false, forceListed = false) => {
+		if (!this.state.serverInfo.listed && !confirmedUnlistedSave) {
+			this.showUnlistedModal(true);
+			return;
+		}
+
+		this.showUnlistedModal(false);
+
 		try {
 			const formData = new FormData();
 
@@ -143,11 +175,17 @@ export default class ServerListing extends React.Component {
 			formData.append('backgroundImageFile', this.state.backgroundRegularFile);
 			formData.append('backgroundImageVerticalFile', this.state.backgroundFeaturedFile);
 			formData.append('description', this.state.serverInfo.description);
-			formData.append('listed', this.state.serverInfo.listed);
+			if (forceListed) {
+				formData.append('listed', true);
+				this.updateServerInfoState('listed', true);
+			} else {
+				formData.append('listed', this.state.serverInfo.listed);
+			}
 			formData.append('defaultInviteChannel', this.state.selectedInviteChannel.value);
 			formData.append('tags', JSON.stringify(this.state.serverInfo.tags || []));
 			formData.append('categories', JSON.stringify(this.state.serverInfo.categories || []));
 			formData.append('links', JSON.stringify(this.state.serverInfo.links || []));
+			formData.append('language', this.state.selectedLanguage.value || 'English');
 
 			this.setState({ isSaving: true });
 			const url = `/api/server/${server}/serverlisting/update`;
@@ -216,6 +254,10 @@ export default class ServerListing extends React.Component {
 		this.setState({ selectedInviteChannel });
 	}
 
+	handleLanguage = (props, selectedLanguage) => {
+		this.setState({ selectedLanguage });
+	}
+
 	render() {
 		if (this.state.isLoading) {
 			return <Loader />;
@@ -236,6 +278,10 @@ export default class ServerListing extends React.Component {
 			right: '0px',
 			bottom: '0px',
 			left: '0px',
+		};
+
+		const modalClasses = {
+            modal: 'filter-modal',
 		};
 
 		let saveButton;
@@ -265,17 +311,18 @@ export default class ServerListing extends React.Component {
 		const channels = this.state.channels.filter(c => c.type === 0);
 		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
 
+		const languageOptions = this.state.languages.map(l => ({ value: l, label: l }));
+
 		return (<div id='module-serverlisting' className='module-content module-settings'>
 			<h3 className='title is-4'>Server Listing {this.ModuleToggle}</h3>
 			<div className='settings-content'>
 				<h3 className='title is-5'>About</h3>
-				{/* <p>This panel controls and customizes wether and how this server is listed on our server list, which can be found <a href="/servers/">here</a></p> */}
-				<p>This panel controls and customizes whether and how this server is listed on our server list, which will be released shortly.</p>
+				<p>This panel controls and customizes wether and how this server is listed on our server list, which can be found <a href="/servers/">here</a></p>
 			</div>
 			<div className='settings-group'>
 				<div className='settings-content is-half'>
-					<h3 className='title is-5'>Listing Details</h3>
-					<div className="module-multitext">
+					<h2 className='title is-2'>
+						Listing Details
 						<div className="control module-toggle" onClick={this.onChangeListed}>
 							<input
 								className=""
@@ -283,10 +330,10 @@ export default class ServerListing extends React.Component {
 								checked={this.state.serverInfo.listed}
 								onChange={this.onChangeListed}
 							/>
-							<label className="checkbox" htmlFor={this.props.text}>
-								Listed
-							</label>
+							<label htmlFor={this.props.text}>Listed</label>
 						</div>
+					</h2>
+					<div className="module-multitext">
 						<p className='control'>
 							<label className="label">Description</label>
 							<textarea
@@ -315,6 +362,14 @@ export default class ServerListing extends React.Component {
 						options={channelOptions}
 						onChange={this.handleChannel}
 						helpText={'If RNet needs to create a new invite, it will use this channel as the invite channel.'} />
+					<RichSelect
+						text='Main server language'
+						defaultValue={this.state.selectedLanguage}
+						defaultOption='English'
+						options={languageOptions}
+						clearable={false}
+						searchable={false}
+						onChange={this.handleLanguage} />
 					{/* <p className='control'>
 						<label className='label'>Border Color</label>
 						<a className='button' onClick={this.toggleColorPicker}>Choose Color</a>
@@ -349,7 +404,7 @@ export default class ServerListing extends React.Component {
 					</div>
 					{ (this.state.serverInfo.premium || this.state.serverInfo.featured) &&
 						<label className='label'>
-							Background Image
+							Background Image<Help text={'Image size: 242 x 270. Our servers will crop the image to size if it\'s larger. The preview will be 100% accurate once you save, there may be differences to image placement before saving.'} />
 							<a onClick={this.deleteImageRegular} style={{ marginLeft: '10px' }}><i className="fas fa-trash-alt" /></a>
 						</label>
 					}
@@ -360,7 +415,7 @@ export default class ServerListing extends React.Component {
 					}
 					{ this.state.serverInfo.featured &&
 						<label className='label'>
-							Background Image (Vertical)
+							Background Image (Vertical)<Help text={'Image size: 242 x 429. Our servers will crop the image to size if it\'s larger. The preview will be 100% accurate once you save, there may be differences to image placement before saving.'} />
 							<a onClick={this.deleteImageVertical} style={{ marginLeft: '10px' }}><i className="fas fa-trash-alt" /></a>
 						</label>
 					}
@@ -414,20 +469,31 @@ export default class ServerListing extends React.Component {
 						</div>
 					</div>
 				</div>
-				<div className='settings-content is-half'>
+				<div className='settings-content is-half listing-preview'>
 					<h3 className='title is-5'>Preview</h3>
 					<div className="main-wrapper">
 						<div className="list-wrapper standard-list-wrapper">
 							<List servers={[this.state.serverInfo]} isShowcase />
 						</div>
 					</div>
-					<div className="main-wrapper">
+					{/* <div className="main-wrapper">
 						<div className="list-wrapper sponsored-list-wrapper">
 							<List servers={[this.state.serverInfo]} featured isShowcase />
 						</div>
-					</div>
+					</div> */}
 				</div>
 			</div>
+			<Modal open={this.state.unlistedModalOpen} classNames={modalClasses} onClose={() => { this.showUnlistedModal(false); }}>
+					<h3>Do you want to publish this listing now?</h3>
+					<div className="columns" style={{ marginTop: '20px' }}>
+						<div className="column">
+							<button className="button is-medium is-info is-fullwidth" onClick={(e) => { this.handleSave(e, true, true); }}>Yes, list it!</button>
+						</div>
+						<div className="column">
+							<button className="button is-medium is-info is-outlined is-fullwidth" onClick={(e) => { this.handleSave(e, true, false); }}>Not yet</button>
+						</div>
+					</div>
+			</Modal>
 		</div>);
 	}
 }

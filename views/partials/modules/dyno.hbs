@@ -1,4 +1,4 @@
-<div id="module-dyno" class="tab-content">
+<div id="module-rnet" class="tab-content">
 	<h3 class="title is-4">RNet Stats</h3>
 
 	{{>moduleheader}}
@@ -10,35 +10,35 @@
 	<div class="module-toggles">
 		{{! Toggles }}
 		<p class="control setting-toggle is-pulled-left">
-			<input id="statsEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="statsEnabled" value="{{@root.server.dyno.statsEnabled}}"{{#if @root.server.dyno.statsEnabled}} checked="checked"{{/if}}>
+			<input id="statsEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="statsEnabled" value="{{@root.server.rnet.statsEnabled}}"{{#if @root.server.rnet.statsEnabled}} checked="checked"{{/if}}>
 			<label class="checkbox" for="statsEnabled">
 				Enable Stats
 			</label>
 		</p>
 
 		<p class="control setting-toggle is-pulled-left">
-			<input id="logEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="logEnabled" value="{{@root.server.dyno.logEnabled}}"{{#if @root.server.dyno.logEnabled}} checked="checked"{{/if}}>
+			<input id="logEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="logEnabled" value="{{@root.server.rnet.logEnabled}}"{{#if @root.server.rnet.logEnabled}} checked="checked"{{/if}}>
 			<label class="checkbox" for="logEnabled">
 				Enable Logging
 			</label>
 		</p>
 
 		<p class="control setting-toggle is-pulled-left">
-			<input id="dmEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="dmEnabled" value="{{@root.server.dyno.dmEnabled}}"{{#if @root.server.dyno.dmEnabled}} checked="checked"{{/if}}>
+			<input id="dmEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="dmEnabled" value="{{@root.server.rnet.dmEnabled}}"{{#if @root.server.rnet.dmEnabled}} checked="checked"{{/if}}>
 			<label class="checkbox" for="dmEnabled">
 				Enable DM Logging
 			</label>
 		</p>
 
 		<p class="control setting-toggle is-pulled-left">
-			<input id="carbonEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="carbonEnabled" value="{{@root.server.dyno.carbonEnabled}}"{{#if @root.server.dyno.carbonEnabled}} checked="checked"{{/if}}>
+			<input id="carbonEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="carbonEnabled" value="{{@root.server.rnet.carbonEnabled}}"{{#if @root.server.rnet.carbonEnabled}} checked="checked"{{/if}}>
 			<label class="checkbox" for="carbonEnabled">
 				Enable Botlist
 			</label>
 		</p>
 
 		<p class="control setting-toggle is-pulled-left">
-			<input id="automodEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="automodEnabled" value="{{@root.server.dyno.automodEnabled}}"{{#if @root.server.dyno.automodEnabled}} checked="checked"{{/if}}>
+			<input id="automodEnabled" class="module-setting-checkbox" type="checkbox" data-module="rnet" name="automodEnabled" value="{{@root.server.rnet.automodEnabled}}"{{#if @root.server.rnet.automodEnabled}} checked="checked"{{/if}}>
 			<label class="checkbox" for="automodEnabled">
 				Enable Automod
 			</label>
@@ -53,7 +53,7 @@
 				<select class="setting-dropdown" name="channel" data-module="rnet">
 					<option>Select Channel</option>
 					{{#each @root.channels}}
-						<option value="{{this.id}}"{{#compare this.id @root.server.dyno.channel}}selected="selected"{{/compare}}>#{{this.name}}</option>
+						<option value="{{this.id}}"{{#compare this.id @root.server.rnet.channel}}selected="selected"{{/compare}}>#{{this.name}}</option>
 					{{/each}}
 				</select>
 			</span>
@@ -66,7 +66,7 @@
 				<select class="setting-dropdown" name="logChannel" data-module="rnet">
 					<option>Select Channel</option>
 					{{#each @root.channels}}
-						<option value="{{this.id}}"{{#compare this.id @root.server.dyno.logChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
+						<option value="{{this.id}}"{{#compare this.id @root.server.rnet.logChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
 					{{/each}}
 				</select>
 			</span>
@@ -79,7 +79,7 @@
 				<select class="setting-dropdown" name="lgChannel" data-module="rnet">
 					<option>Select Channel</option>
 					{{#each @root.channels}}
-						<option value="{{this.id}}"{{#compare this.id @root.server.dyno.lgChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
+						<option value="{{this.id}}"{{#compare this.id @root.server.rnet.lgChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
 					{{/each}}
 				</select>
 			</span>
@@ -92,7 +92,7 @@
 				<select class="setting-dropdown" name="dmChannel" data-module="rnet">
 					<option>Select Channel</option>
 					{{#each @root.channels}}
-						<option value="{{this.id}}"{{#compare this.id @root.server.dyno.dmChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
+						<option value="{{this.id}}"{{#compare this.id @root.server.rnet.dmChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
 					{{/each}}
 				</select>
 			</span>
@@ -105,7 +105,7 @@
 				<select class="setting-dropdown" name="carbonChannel" data-module="rnet">
 					<option>Select Channel</option>
 					{{#each @root.channels}}
-						<option value="{{this.id}}"{{#compare this.id @root.server.dyno.carbonChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
+						<option value="{{this.id}}"{{#compare this.id @root.server.rnet.carbonChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
 					{{/each}}
 				</select>
 			</span>
@@ -118,7 +118,7 @@
 				<select class="setting-dropdown" name="automodChannel" data-module="rnet">
 					<option>Select Channel</option>
 					{{#each @root.channels}}
-						<option value="{{this.id}}"{{#compare this.id @root.server.dyno.automodChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
+						<option value="{{this.id}}"{{#compare this.id @root.server.rnet.automodChannel}}selected="selected"{{/compare}}>#{{this.name}}</option>
 					{{/each}}
 				</select>
 			</span>

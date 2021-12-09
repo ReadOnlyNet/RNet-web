@@ -54,15 +54,15 @@ export default class RichMultiSelect extends React.Component {
 				<label className='label'>
 					{this.props.label}
 					{this.props.helpText && (<Help text={this.props.helpText} />)}
-					<Select
-						multi={this.props.multi || true}
-						value={value}
-						placeholder={this.props.placeholder}
-						clearable={this.props.clearable}
-						onChange={this.handleChange}
-						searchable={true}
-						options={options} />
 				</label>
+				<Select
+					multi={this.props.multi || true}
+					value={value}
+					placeholder={this.props.placeholder}
+					clearable={this.props.clearable}
+					onChange={this.handleChange}
+					searchable={true}
+					options={options} />
 
 			</div>
 		)

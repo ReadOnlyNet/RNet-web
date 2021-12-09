@@ -8,27 +8,33 @@ import Automessage from './automessage/Automessage.jsx';
 import Autopurge from './autopurge/Autopurge.jsx';
 import Autoresponder from './autoresponder/AutoResponder.jsx';
 import Autoroles from './autoroles/Autoroles.jsx';
-import Cleverbot from './cleverbot/Cleverbot.jsx';
+import Bans from './bans/Bans.jsx';
 import Commands from './commands/Commands.jsx';
 import CustomCommands from './customcommands/CustomCommands.jsx';
 import MessageEmbedder from './messageEmbedder/MessageEmbedder.jsx';
 import Moderation from './moderation/Moderation.jsx';
+import ModuleCommands from './commands/ModuleCommands.jsx';
 import Modules from './modules/Modules.jsx';
 import Music from './music/Music.jsx';
 import Nav from './sidebar/Nav.jsx';
 import Settings from './settings/Settings.jsx';
 import Tags from './tags/Tags.jsx';
 import VoiceTextLinking from './vtl/VoiceTextLinking.jsx';
-import Playlist from './music/Playlist.jsx';
+import Queue from './music/Queue.jsx';
 import Slowmode from './slowmode/Slowmode.jsx';
+import Welcome from './welcome/Welcome.jsx';
+import ReactionRoles from './reactionroles/ReactionRoles.jsx';
 import Logs from './logs/Logs.jsx';
 import ServerListing from './serverlisting/ServerListing.jsx';
+import Reddit from './reddit/Reddit.jsx';
 // import CommandLogs from './commandlogs/CommandLogs.jsx';
 // import DashboardLogs from './dashboardlogs/DashboardLogs.jsx';
 // import ModLogs from './modlogs/ModLogs.jsx';
 import Warnings from './warnings/Warnings.jsx';
 import ErrorHandler from './common/ErrorHandler.jsx';
+import Footer from './footer/Footer.jsx';
 import { updateModuleState } from './service/dashboardService.js';
+import TopAd from '../common/TopAd.jsx';
 
 export default class Dashboard extends React.Component {
 	constructor(props) {
@@ -76,75 +82,96 @@ export default class Dashboard extends React.Component {
 			<Nav {...this.getProps()} />
 			<ErrorHandler>
 				<div className="column">
+					{ !this.state.isPremium &&
+						<TopAd />
+					}
 					<Switch>
-						<Route exact path={path} component={Settings} />
+						{/* <Route exact path={path} component={Settings} /> */}
+						<Route exact path={path} render={(props) => (
+							<Settings {...props} data={this.getProps()} />
+						)} />
 						<Route path={`${path}/server-listing`} render={(props) => (
 							<ServerListing {...props} data={this.getProps('ServerListing')} />
 						)} />
 						<Route path={`${path}/commands`} render={(props) => (
 							<Commands {...props} data={this.getProps()} />
 						)} />
-						<Route path={`${path}/modules`} render={(props) => (
+						<Route exact path={`${path}/modules`} render={(props) => (
 							<Modules {...props} data={this.getProps()} />
 						)} />
-						<Route path={`${path}/announcements`} render={(props) => (
+						<Route exact path='/manage/:id/modules/:module/commands' render={(props) => {
+							const module = this.getProps().modules.find(m => m.partialId === props.match.params.module);
+							return (
+								<ModuleCommands {...props} module={module} data={this.getProps()} />
+							);
+						} } />
+						<Route path={`${path}/modules/announcements`} render={(props) => (
 							<Announcements {...props} data={this.getProps('Announcements')} />
 						)} />
-						<Route path={`${path}/actionlog`} render={(props) => (
+						<Route path={`${path}/modules/actionlog`} render={(props) => (
 							<ActionLog {...props} data={this.getProps('ActionLog')} />
 						)} />
-						<Route path={`${path}/moderation`} render={(props) => (
+						<Route path={`${path}/modules/moderation`} render={(props) => (
 							<Moderation {...props} data={this.getProps('Moderation')} />
 						)} />
-						<Route path={`${path}/automod`} render={(props) => (
+						<Route path={`${path}/modules/automod`} render={(props) => (
 							<Automod {...props} data={this.getProps('Automod')} />
 						)} />
-						<Route path={`${path}/automessage`} render={(props) => (
+						<Route path={`${path}/modules/automessage`} render={(props) => (
 							<Automessage {...props} data={this.getProps('Automessage')} />
 						)} />
-						<Route path={`${path}/autopurge`} render={(props) => (
+						<Route path={`${path}/modules/autopurge`} render={(props) => (
 							<Autopurge {...props} data={this.getProps('Autopurge')} />
 						)} />
-						<Route path={`${path}/autoresponder`} render={(props) => (
+						<Route path={`${path}/modules/autoresponder`} render={(props) => (
 							<Autoresponder {...props} data={this.getProps('Autoresponder')} />
 						)} />
-						<Route path={`${path}/autoroles`} render={(props) => (
+						<Route path={`${path}/modules/autoroles`} render={(props) => (
 							<Autoroles {...props} data={this.getProps('Autoroles')} />
 						)} />
-						<Route path={`${path}/cleverbot`} render={(props) => (
-							<Cleverbot {...props} data={this.getProps('Cleverbot')} />
-						)} />
-						<Route path={`${path}/music`} render={(props) => (
+						<Route path={`${path}/modules/music`} render={(props) => (
 							<Music {...props} data={this.getProps('Music')} />
 						)} />
-						<Route path={`${path}/music-queue`} render={(props) => (
-							<Playlist {...props} data={this.getProps()} />
-						)} />
-						<Route path={`${path}/tags`} render={(props) => (
+						{/* <Route path={`${path}/music-queue`} render={(props) => (
+							<div className='module-content'>
+								<Queue {...props} data={this.getProps()} />
+							</div>
+						)} /> */}
+						<Route path={`${path}/modules/tags`} render={(props) => (
 							<Tags {...props} data={this.getProps('Tags')} />
 						)} />
-						<Route path={`${path}/voicetextlinking`} render={(props) => (
+						<Route path={`${path}/modules/voicetextlinking`} render={(props) => (
 							<VoiceTextLinking {...props} data={this.getProps('VoiceTextLinking')} />
 						)} />
-						<Route path={`${path}/customcommands`} render={(props) => (
+						<Route path={`${path}/modules/customcommands`} render={(props) => (
 							<CustomCommands {...props} data={this.getProps('CustomCommands')} />
 						)} />
-						<Route path={`${path}/messageembedder`} render={(props) => (
+						<Route path={`${path}/modules/messageembedder`} render={(props) => (
 							<MessageEmbedder {...props} data={this.getProps('MessageEmbedder')} />
 						)} />
-						<Route path={`${path}/slowmode`} render={(props) => (
+						<Route path={`${path}/modules/slowmode`} render={(props) => (
 							<Slowmode {...props} data={this.getProps('Slowmode')} />
 						)} />
-						<Route path={`${path}/associates`} render={(props) => (
-							<Associates {...props} data={this.getProps('Associates')} />
+						<Route path={`${path}/modules/welcome`} render={(props) => (
+							<Welcome {...props} data={this.getProps('Welcome')} />
+						)} />
+						<Route path={`${path}/modules/reactionroles`} render={(props) => (
+							<ReactionRoles {...props} data={this.getProps('ReactionRoles')} />
+						)} />
+						<Route path={`${path}/modules/reddit`} render={(props) => (
+							<Reddit {...props} data={this.getProps('Reddit')} />
 						)} />
 						<Route path={`${path}/logs`} component={Logs} />
+						<Route path={`${path}/bans`} component={Bans} />
 						{/* <Route path={`${path}/weblogs`} component={DashboardLogs} />
 					<Route path={`${path}/modlogs`} component={ModLogs} />
 					<Route path={`${path}/commandlogs`} component={CommandLogs} /> */}
 						<Route path={`${path}/warnings`} component={Warnings} />
 					</Switch>
 				</div>
+				{/* <div className='column dash-footer'>
+					<Footer {...this.getProps()} />
+				</div> */}
 			</ErrorHandler>
 		</div>);
 	}

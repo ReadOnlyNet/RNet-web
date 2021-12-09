@@ -16,6 +16,6 @@ export default class RemoveModuleItem extends React.Component {
 	}
 
 	render() {
-		return (<a className='button is-danger' onClick={this.onClick}>Remove</a>);
+		return (<a className='button is-info' onClick={this.onClick}>Remove</a>);
 	}
 }

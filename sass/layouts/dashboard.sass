@@ -1,12 +1,24 @@
-@import "../core/base.sass"
+@import "../core/base.scss"
+@import "../core/common.sass";
 
 body
     display: flex;
     min-height: 100vh;
     flex-direction: column;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Maison Neue', sans-serif;
     margin: 0;
     background-color: $body-background;
+
+body, html
+    height: 100%;
+
+.page-server
+    height: 100%;
+    .container-fluid, #dashboard-mount
+        height: 100%;
+        > .columns
+            min-height: 100%;
+
 
 .page-wrapper
     flex: 1;
@@ -131,7 +143,7 @@ body .react-tabs
                     // margin-top: 0;
 
 .top-bar
-    background-color: $new-background;
+    background-color: $topnav-background;
     height: 80px;
     padding: 0 1.2rem;
     margin-bottom: 0 !important;
@@ -244,8 +256,8 @@ body .react-tabs
 
 .page-wrapper
     .menu
-        padding: 1em;
-        background-color: $new-background;
+        // padding: 1em;
+        background-color: $nav-background;
         padding-top: 1em;
         position: relative;
         margin-bottom: 10px;
@@ -262,8 +274,27 @@ body .react-tabs
                 border-radius: 5px 5px 0 0;
                 background-color: $info;
 
-    .menu-list a.is-active
-        background-color: $info;
+    .menu-list
+        a.is-active
+            background-color: $info;
+
+        .modules-nav
+            .is-subnav
+                visibility: hidden;
+                display: none;
+                padding: 10px;
+                padding-left: 32px;
+                font-size: 13px;
+                line-height: 23px;
+                color: #BCC2D2;
+                &.is-active
+                    background-color: #384463;
+
+            &.active
+                .is-subnav
+                    visibility: visible;
+                    display: inherit;
+                    
 
 .avatar
     border: solid #fff 3px;
@@ -287,12 +318,26 @@ body .react-tabs
         height: 128px;
         border-radius: 64px;
 
-.guild-icon
-    width: 64px;
-    height: 64px;
+.guild-header
+    text-align: center;
+
+.guild-icon-wrapper
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     overflow: hidden;
-    background-color: #666;
+    background: linear-gradient(174.35deg, #393e4a 0%, #292f3c 100%);;
+    padding: 10px;
+    -webkit-box-shadow: 0px 10px 20px 0px rgba(255,255,255,0.11);
+    -moz-box-shadow: 0px 10px 20px 0px rgba(255,255,255,0.11);
+    box-shadow: 0px 10px 20px 0px rgba(255,255,255,0.11);
+    margin: 0 auto 1em;
+.guild-icon
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    // background-color: #666;
     &.is-48
         width: 48px;
         height: 48px;
@@ -378,6 +423,45 @@ body .react-tabs
     background-color: darken($premium, 10%);
     padding: 0.6em;
 
+.paginatedTable, #tagList, #queueList
+    .control.has-icons-right
+        width: 35%;
+        float: right;
+        input
+            background: #1E283B;
+            border-radius: 2px;
+            border: none;
+            height: 50px;
+
+            &::placeholder
+                color: #596878;
+
+        .icon
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #EE6668;
+            height: 100%;
+
+#music-queue
+    .queue-index 
+        width: 120px;
+        padding-left: 22px;
+    .queue-item
+        display: flex;
+        align-items: center;
+
+        .music-thumb
+            width: 48px;
+            height: 48px;
+            margin-right: 14px;
+            margin-left: 14px;
+
+        a
+            color: #fff;
+            font-weight: 500;
+    
+
 .table
   background-color: $background
   &.is-striped
@@ -402,6 +486,14 @@ body .react-tabs
             tr
                 &:hover
                     background-color: $background;
+
+#module-reddit
+    .settings-group
+        display: block;
+    
+    .settings-content
+        .rich-toggle
+            min-width: 200px;
 
 .ReactTable .rt-table
   background-color: $background
@@ -481,12 +573,22 @@ body .react-tabs
 .pagination-list
     justify-content: left !important;
     li
-        border: solid #555 1px;
+        border: solid #01E6CE 1px;
         border-radius: 3px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 10px;
+        color: #01E6CE;
+        
         a
-            color: #ececec;
+            color: unset;
+            font-weight: 500;
     li.active
-        background-color: $info;
+        background-color: #01E6CE;
+        color: #222C45;
     li.disabled
         border: none;
         a

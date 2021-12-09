@@ -108,8 +108,12 @@ export default class CommandList extends React.Component {
 											{!c || !c.response ? 'Invalid Command, please remove.' : c.response}
 										</code></td>
 										<td>
+											<a className='button is-danger is-outlined command-remove' onClick={() => {
+												if (window.confirm(`Are you sure you want to delete ${c.name}?`)) {
+													this.deleteCommand(c)
+												}
+											}} >Remove</a>
 											<a className='button is-info command-edit' onClick={this.editCommand.bind(this, c)} >Edit</a>
-											<a className='button is-danger command-remove' onClick={this.deleteCommand.bind(this, c)} >Remove</a>
 										</td>
 									</tr>))}
 							</tbody>

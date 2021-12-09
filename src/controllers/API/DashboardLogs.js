@@ -42,15 +42,33 @@ class DashboardLogs extends Controller {
 		return res.send({ logs: docs || [], pageCount });
     }
 
-	getLogs(guildId, page = 0, pageSize = 10) {
+	async getLogs(guildId, page = 0, pageSize = 10) {
         const limit = pageSize;
         const skip = pageSize * page;
-        return db.collection('weblogs')
-                .find({ guild: guildId })
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .toArray();
+        try {
+            const logs = await db.collection('weblogs')
+                    .find({ guild: guildId }, { projection: {
+                        guild: 1,
+                        userid: 1,
+                        user: 1,
+                        action: 1,
+                        createdAt: 1,
+                    } })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray();
+            return logs && logs.map(l => {
+                l.user = {
+                    id: l.user.id,
+                    username: l.user.username,
+                    discriminator: l.user.discriminator,
+                };
+                return l;
+            });
+        } catch (err) {
+            return Promise.reject(err);
+        }
     }
 
     countLogs(guildId) {

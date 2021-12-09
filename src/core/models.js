@@ -6,7 +6,7 @@ const DataFactory = require('@rnet.cf/datafactory');
 
 require('dotenv').config({ silent: true });
 
-const dbString = getenv('CLIENT_MONGO_URL', 'localhost');
+const dbString = getenv('CLIENT_MONGO_URL');
 
 if (!dbString) {
 	throw new Error('Missing environment variable CLIENT_MONGO_URL.');

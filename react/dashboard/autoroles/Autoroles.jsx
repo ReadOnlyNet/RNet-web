@@ -1,12 +1,11 @@
 import React from 'react';
 import axios from 'axios';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { NavLink, Route } from 'react-router-dom';
 import ModuleSettings from '../common/ModuleSettings.jsx';
 import AutorolesTab from './AutorolesTab.jsx';
 import RanksTab from './RanksTab.jsx';
-import Loader from '../common/Loader.jsx';
 
-export default class Autoroles extends ModuleSettings {
+export default class Autoroles extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -28,28 +27,24 @@ export default class Autoroles extends ModuleSettings {
 	}
 
     render() {
-		if (this.state.isLoading) {
-			return <Loader />;
-		}
+		const path = this.props.match.path;
+		const url = this.props.match.url.replace(/\/$/, '');
 
-		return (<div id='module-autoroles' className='module-content module-settings'>
-			<h3 className='title is-4'>Autoroles {this.ModuleToggle}</h3>
-			<Tabs selectedTabClassName='is-active' selectedTabPanelClassName='is-active'>
-				<div className='has-tabs'>
-					<div className='tabs'>
-						<TabList>
-							<Tab><a className='subtab-control'>Autoroles</a></Tab>
-							<Tab><a className='subtab-control'>Joinable Ranks</a></Tab>
-						</TabList>
-					</div>
+		return (<ModuleSettings {...this.props} name='autoroles' title='Auto Roles' isLoading={this.state.isLoading}>
+			<div className='has-tabs'>
+				<div className='tabs'>
+					<ul className='tabs'>
+						<li><NavLink exact to={`${url}`} className='subtab-control' activeClassName='is-active'>Autoroles</NavLink></li>
+						<li><NavLink to={`${url}/ranks`} className='subtab-control' activeClassName='is-active'>Joinable Ranks</NavLink></li>
+					</ul>
 				</div>
-				<TabPanel>
-					<AutorolesTab {...this.props} roles={this.state.roles} />
-				</TabPanel>
-				<TabPanel>
-					<RanksTab {...this.props} />
-				</TabPanel>
-			</Tabs>
-		</div>);
+			</div>
+			<Route exact path={`${path}`} render={(props) => (
+				<AutorolesTab {...this.props} roles={this.state.roles} />
+			)} />
+			<Route path={`${path}/ranks`} render={(props) => (
+				<RanksTab {...this.props} />
+			)} />
+		</ModuleSettings>);
     }
 }

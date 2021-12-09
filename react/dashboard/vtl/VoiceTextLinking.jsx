@@ -4,13 +4,9 @@ import MessageSetting from './MessageSetting.jsx';
 import ModuleSettings from '../common/ModuleSettings.jsx';
 import SettingCheckbox from '../common/SettingCheckbox.jsx';
 import RichSelect from '../common/RichSelect.jsx';
-import RichSettingSelect from '../common/RichSettingSelect.jsx';
-import Variables from '../common/Variables.jsx';
-import Loader from '../common/Loader.jsx';
-import FeatureLocker from '../common/FeatureLocker.jsx';
 import { addModuleItem, updateModuleSetting } from '../service/dashboardService.js';
 
-export default class VoiceTextLinking extends ModuleSettings {
+export default class VoiceTextLinking extends React.Component {
 	state = {
 		channels: [],
 		voicetextlinking: {},
@@ -85,10 +81,6 @@ export default class VoiceTextLinking extends ModuleSettings {
 	}
 
     render() {
-		if (this.state.isLoading) {
-			return <Loader />;
-		}
-
 		const module = this.props.data.module;
 		const { voicetextlinking } = this.state;
 		const bindings = voicetextlinking.channels || [];
@@ -97,16 +89,14 @@ export default class VoiceTextLinking extends ModuleSettings {
 		const boundVoiceChannels = bindings.map(b => b.voiceChannel) || [];
 
 		const textOptions = this.state.channels
-			.filter(c => c.type === 0 && !boundTextChannels.includes(c.id))
+			.filter(c => c.type === 0 /*&& !boundTextChannels.includes(c.id)*/)
 			.map(c => ({ value: c.id, label: c.name }));
 		const voiceOptions = this.state.channels
 			.filter(c => c.type === 2 && !boundVoiceChannels.includes(c.id))
 			.map(c => ({ value: c.id, label: c.name }));
 
-		return (
-		<FeatureLocker isLocked={!this.props.data.isPremium}>
-			<div id='module-voicetextlinking' className='module-content module-settings'>
-				<h3 className='title is-4'>Voice Text Linking {this.ModuleToggle}</h3>
+		return (<ModuleSettings {...this.props} name='voicetextlinking' title='Voice Text Linking' isLoading={this.state.isLoading} featureLocker={true}>
+			<div className='settings-panel'>
 				<div className='settings-content is-flex'>
 					<SettingCheckbox
 						module={module}
@@ -188,6 +178,6 @@ export default class VoiceTextLinking extends ModuleSettings {
 					</table>
 				</div>
 			</div>
-		</FeatureLocker>);
+		</ModuleSettings>);
     }
 }

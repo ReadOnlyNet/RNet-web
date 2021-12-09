@@ -15,7 +15,7 @@ export default class Embed extends React.Component {
 		'**': 'strong',
 		'__': 'u',
 		'_': 'em',
-		'*': 'strong',
+		'*': 'i',
 		'~~': 'strike',
 		'```': 'code.block',
 		'`': 'code.inline',
@@ -61,6 +61,11 @@ export default class Embed extends React.Component {
 		formattedInput = formattedInput.replace(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g,
 			'<a href="$&" target="_blank">$&</a>');
 
+
+		formattedInput = formattedInput.replace(/\[(.+?)\]\(<a href="(.+?)">(.+?)<\/a>\)/g, '<a href="$2" target="_blank">$1</a>');
+
+		formattedInput = formattedInput.replace(/\|\|(.+?)\|\|/g, '<span style="background-color: hsla(0,0%,100%,.1);">$1</span>');
+
 		const tags = Object.keys(this.mdTags).map(tag => tag.replace(/\*/g, '\\*'));
 
 		for (let t of tags) {
@@ -76,11 +81,11 @@ export default class Embed extends React.Component {
 		for (let [key, value] of channelMentions) {
 			if (key.startsWith('#')) {
 				const regex = `(#${value.name})(?!<\\/a>)`;
-				formattedInput = formattedInput.replace(new RegExp(regex), `<a>#${value.name}</a>`);
+				formattedInput = formattedInput.replace(new RegExp(regex), `<a style="background-color: rgba(114,137,218,.1); color: #7289da; font-weight: 500; font-style: normal;">#${value.name}</a>`);
 				continue;
 			}
 
-			formattedInput = formattedInput.replace(key, `<a>#${value.name}</a>`);
+			formattedInput = formattedInput.replace(key, `<a style="background-color: rgba(114,137,218,.1); color: #7289da; font-weight: 500; font-style: normal;">#${value.name}</a>`);
 		}
 
 		const roleMentions = parseRoleMentions(formattedInput, this.props.roles);

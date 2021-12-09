@@ -1,3 +1,4 @@
+/* globals _showSuccess _showError server */
 import axios from 'axios';
 
 export async function updateSetting(setting, value) {
@@ -51,7 +52,9 @@ export async function updateModuleSetting(module, setting, value, friendlyName, 
             if (!valueName && typeof value === 'object') {
                 return _showSuccess(`Updated ${friendlyName}`);
             }
-            if (value) value = value.substr(0, 35) + '...';
+            if (value && value.toString().length > 35) {
+                value = value.toString().substr(0, 35) + '...';
+            }
             return _showSuccess(`Changed ${friendlyName} to ${valueName || value}`);
         }
     } catch (err) {

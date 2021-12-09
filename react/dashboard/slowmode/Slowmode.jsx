@@ -1,15 +1,11 @@
 import axios from 'axios';
-import moment from 'moment';
 import React from 'react';
-import Slider from 'rc-slider';
 import Help from '../common/Help.jsx';
 import ModuleSettings from '../common/ModuleSettings.jsx';
-import Loader from '../common/Loader.jsx';
 import RichSelect from '../common/RichSelect.jsx';
-import FeatureLocker from '../common/FeatureLocker.jsx';
 import { addSlowmode, deleteSlowmode } from './service/slowmode.js';
 
-export default class Slowmode extends ModuleSettings {
+export default class Slowmode extends React.Component {
 	state = {
 		channels: [],
 		slowmode: { channels: [] },
@@ -94,12 +90,7 @@ export default class Slowmode extends ModuleSettings {
 	}
 
 	render() {
-		if (this.state.isLoading) {
-			return <Loader />;
-		}
-
 		const { slowmode } = this.state;
-
 		const channels = this.state.channels.filter(c => c.type === 0);
 		const channelOptions = channels
 			.filter(c => !slowmode.channels || !slowmode.channels.find(s => s.id === c.id))
@@ -108,10 +99,8 @@ export default class Slowmode extends ModuleSettings {
 		let slowmodes = slowmode.channels || [];
 		slowmodes = slowmodes.filter(s => channels.find(c => c.id === s.id));
 
-		return (
-			<FeatureLocker isLocked={!this.props.data.isPremium}>
-				<div id='module-slowmode' className='module-content module-settings'>
-					<h3 className='title is-4'>Slowmode {this.ModuleToggle}</h3>
+		return (<ModuleSettings {...this.props} name='slowmode' title='Slowmode' isLoading={this.state.isLoading} featureLocker={true}>
+				<div className='settings-panel'>
 					<div className='settings-content'>
 						<h3 className='title is-5'>About</h3>
 						<p>Slowmode will rate limit the number of messages members can send in a channel.</p>
@@ -185,7 +174,7 @@ export default class Slowmode extends ModuleSettings {
 						</div>
 					</div>
 				</div>
-			</FeatureLocker>
+			</ModuleSettings>
 		);
 	}
 }

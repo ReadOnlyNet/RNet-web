@@ -5,10 +5,11 @@ const accounting = require('accounting');
 const superagent = require('superagent');
 const Controller = require('../core/Controller');
 const config = require('../core/config');
-const logger = require('../core/logger');
+const logger = require('../core/logger').get('Index');
 const redis = require('../core/redis');
-const { models } = require('../core/models');
+const db = require('../core/models');
 const stripe = require('stripe')();
+const slugify = require('slugify');
 
 /**
  * Index controller
@@ -21,15 +22,33 @@ class Index extends Controller {
 	 * Constructor
 	 * @returns {Object}
 	 */
-	constructor(bot) {
+	constructor(bot, httpServer) {
 		super(bot);
+		this.httpServer = httpServer;
 
 		// define routes
 		return {
+			before: {
+				method: 'use',
+				uri: [
+					'/commands/',
+					'/faq',
+					'/team',
+					'/upgrade',
+					'/servers',
+					'/bot',
+				],
+				handler: this.before.bind(this),
+			},
 			index: {
 				method: 'get',
 				uri: '/',
 				handler: this.index.bind(this),
+			},
+			botpage: {
+				method: 'get',
+				uri: '/bot',
+				handler: this.botpage.bind(this),
 			},
 			manage: {
 				method: 'get',
@@ -47,19 +66,24 @@ class Index extends Controller {
 				handler: this.faq.bind(this),
 			},
 			serverlist: {
-                method: 'get',
-                uri: '/servers',
-                handler: this.serverlist.bind(this),
+				method: 'get',
+				uri: '/servers',
+				handler: this.serverlist.bind(this),
 			},
-			serverpage: {
-                method: 'get',
-                uri: '/server/:id',
-                handler: this.serverpage.bind(this),
+			staffserverlist: {
+				method: 'get',
+				uri: '/staff/servers',
+				handler: this.staffserverlist.bind(this),
 			},
 			serverpageinvite: {
 				method: 'get',
 				uri: '/server/:id/invite',
 				handler: this.serverpageinvite.bind(this),
+			},
+			serverpage: {
+				method: 'get',
+				uri: '/server/:id/:slug?',
+				handler: this.serverpage.bind(this),
 			},
 			discord: {
 				method: 'get',
@@ -116,7 +140,25 @@ class Index extends Controller {
 				uri: '/stats',
 				handler: (_, req, res) => res.redirect('https://p.datadoghq.com/sb/6ac51d7ba-f48fd68210'),
 			},
+			sitemap: {
+				method: 'get',
+				uri: '/sitemap.xml',
+				handler: this.sitemapIndex.bind(this),
+			},
+			dynamicSitemaps: {
+				method: 'get',
+				uri: '/sitemaps/:mapName',
+				handler: this.dynamicSitemaps.bind(this),
+			},
 		};
+	}
+
+	before(bot, req, res, next) {
+		if (config.isPremium && !config.staging) {
+			return res.redirect('https://rnet.cf');
+		}
+
+		return next();
 	}
 
 	/**
@@ -126,6 +168,10 @@ class Index extends Controller {
 	 * @param {Object} res Express response
 	 */
 	index(bot, req, res) {
+		if (config.isPremium && !config.staging) {
+			return res.redirect('https://rnet.cf');
+		}
+
 		if (req.query && req.query.code) {
 			const tokenUrl = 'https://discordapp.com/api/oauth2/token';
 
@@ -165,19 +211,73 @@ class Index extends Controller {
 				});
 		}
 
-        const timeout = setTimeout(() => res.render('index'), 1000);
+		res.locals.stylesheets.push('/css/serverlist.css');
+
+		const timeout = setTimeout(() => res.render('index'), 1000);
 
 		res.locals.t = moment().format('YYYYMMDDHHmm');
 
-        redis.hgetall(`dyno:guilds:161660517914509312`).then(data => {
-            const guildCount = Object.values(data).reduce((a, b) => {
+		redis.hgetall(`rnet:guilds:161660517914509312`).then(data => {
+			const guildCount = Object.values(data).reduce((a, b) => {
 				a += parseInt(b);
 				return a;
 			}, 0);
-            res.locals.guildCount = accounting.format(guildCount, 0);
-            clearTimeout(timeout);
-            return res.render('index');
-        });
+			res.locals.guildCount = accounting.format(guildCount, 0);
+			clearTimeout(timeout);
+			return res.render('index');
+		});
+	}
+
+	sitemapIndex(bot, req, res) {
+		const staticMap = this.httpServer.sitemap.getSitemapIndex();
+
+		try {
+			res.header('Content-Type', 'application/xml');
+			res.send(staticMap);
+		} catch (err) {
+			logger.error(err);
+			res.status(500).end();
+		}
+	}
+
+	dynamicSitemaps(bot, req, res) {
+		const dynamicMaps = this.httpServer.sitemap.getDynamicSitemap();
+		const mapName = req.params.mapName.replace('.xml', '');
+
+		if (!dynamicMaps[mapName]) {
+			return res.status(404).send();
+		}
+
+		try {
+			res.header('Content-Type', 'application/xml');
+			res.send(dynamicMaps[mapName]);
+		} catch (err) {
+			logger.error(err);
+			res.status(500).end();
+		}
+	}
+
+	/**
+	 * Bot handler
+	 * @param {Bot} bot Bot instance
+	 * @param {Object} req Express request
+	 * @param {Object} res Express response
+	 */
+	botpage(bot, req, res) {
+		const timeout = setTimeout(() => res.render('bot'), 1000);
+
+		res.locals.t = moment().format('YYYYMMDDHHmm');
+		res.locals.opengraph = { bot: true };
+
+		redis.hgetall(`rnet:guilds:161660517914509312`).then(data => {
+			const guildCount = Object.values(data).reduce((a, b) => {
+				a += parseInt(b);
+				return a;
+			}, 0);
+			res.locals.guildCount = accounting.format(guildCount, 0);
+			clearTimeout(timeout);
+			return res.render('bot');
+		});
 	}
 
 	setid(bot, req, res) {
@@ -204,52 +304,62 @@ class Index extends Controller {
 			return res.redirect('/auth');
 		}
 
-		res.locals.guilds = req.session.guilds.map((guild) => {
-			if (!guild.icon) {
-				const match = guild.name.match(/[!?#]|(?:\s|^)[a-z]/ig);
-				guild.initials = match ?
-					match.join('').replace(/\s/g, '').toUpperCase() :
-					'N/A';
-			}
-			return guild;
-		});
-		res.locals.stylesheets.push('manage');
-
-		return res.render('manage');
+		return res.redirect('account');
 	}
 
 	faq(bot, req, res) {
-		res.locals.stylesheets.push('faq');
+		res.locals.stylesheets.push('/css/faq.css');
 		return res.render('faq');
 	}
 
 	serverlist(bot, req, res) {
-		if (!process.env.ENABLE_SERVER_LISTING) {
-			return res.status(404).send();
-		}
-        res.locals.stylesheets.push('serverlist');
-        res.locals.externalStylesheets = ['https://cdnjs.cloudflare.com/ajax/libs/hint.css/2.5.0/hint.min.css'];
-        return res.render('serverlist');
+		res.locals.opengraph = { listing: true };
+		res.locals.stylesheets.push('/css/serverlist.css');
+		res.locals.externalStylesheets = ['https://cdnjs.cloudflare.com/ajax/libs/hint.css/2.5.0/hint.min.css'];
+		return res.render('serverlist');
 	}
 
-	serverpage(bot, req, res) {
-		if (!process.env.ENABLE_SERVER_LISTING) {
-			return res.status(404).send();
+	async staffserverlist(bot, req, res) {
+		if (!req.session || !req.session.user) {
+			return res.redirect('/');
 		}
-        res.locals.stylesheets.push('serverpage');
+
+		if (!req.session.isAdmin) {
+			const globalConfig = await db.models.RNet.findOne({}, { listingAccess: 1 }).lean();
+			if (!globalConfig || !globalConfig.listingAccess || !globalConfig.listingAccess.includes(req.session.user.id)) {
+				return res.redirect('/');	
+			} else {
+				req.session.listingAccess = true;
+			}
+		}
+
+		res.locals.stylesheets.push('/css/serverlist.css');
+		res.locals.externalStylesheets = ['https://cdnjs.cloudflare.com/ajax/libs/hint.css/2.5.0/hint.min.css'];
+		return res.render('staffserverlist');
+	}
+
+	async serverpage(bot, req, res) {
+		const server = await db.collection('serverlist_store').findOne({ id: req.params.id, listed: true });
+
+		if (!server) {
+			return res.status(404).render('errors/404', { url: req.url });
+		}
+
+		res.locals.opengraph = { server, url: `${config.site.host.replace(/\/$/g, '')}/server/${server.id}/${slugify(server.name)}` };
+
+		res.locals.stylesheets.push('/css/pages/account.css');
+		res.locals.stylesheets.push('/css/serverpage.css');
+		res.locals.scripts.push('/js/react/serverPage.js');
 		res.locals.externalStylesheets = ['https://cdnjs.cloudflare.com/ajax/libs/hint.css/2.5.0/hint.min.css'];
 		res.locals.guildId = req.params.id;
-        return res.render('serverpage');
+		return res.render('serverpage');
 	}
 
 	serverpageinvite(bot, req, res) {
-		if (!process.env.ENABLE_SERVER_LISTING) {
-			return res.status(404).send();
-		}
-        res.locals.stylesheets.push('serverpageinvite');
+		res.locals.stylesheets.push('/css/serverpageinvite.css');
 		res.locals.guildId = req.params.id;
 		res.locals.recaptchaKey = config.site.recaptcha_site_key;
-        return res.render('serverpageinvite');
+		return res.render('serverpageinvite');
 	}
 
 	discord(bot, req, res) {
@@ -268,18 +378,18 @@ class Index extends Controller {
 
 	async team(bot, req, res) {
 		try {
-			const globalConfig = await models.RNet.findOne({}, { team: 1 }).lean().exec();
+			const globalConfig = await db.models.RNet.findOne({}, { team: 1 }).lean().exec();
 			res.locals.team = globalConfig.team;
 		} catch (err) {
 			res.locals.team = config.global.team;
 		}
 
-		res.locals.stylesheets.push('team');
+		res.locals.stylesheets.push('/css/team.css');
 		return res.render('team');
 	}
 
 	sponsors(bot, req, res) {
-		res.locals.stylesheets.push('pages/sponsors');
+		res.locals.stylesheets.push('/css/pages/sponsors.css');
 		return res.render('sponsors');
 	}
 
@@ -298,7 +408,7 @@ class Index extends Controller {
 		if (req.query.prod) {
 			res.locals.prod = req.query.prod;
 		}
-		res.locals.stylesheets.push('pages/upgrade');
+		res.locals.stylesheets.push('/css/pages/upgrade.css');
 		return res.render('upgrade');
 	}
 
@@ -361,17 +471,17 @@ class Index extends Controller {
 		commandGroups[0].isActive = true;
 
 		res.locals.commands = commandGroups;
-
+		res.locals.stylesheets.push('/css/pages/commands.css');
 		return res.render('commands');
 	}
 
 	terms(bot, req, res) {
-		res.locals.stylesheets.push('legal');
+		res.locals.stylesheets.push('/css/legal.css');
 		return res.render('terms');
 	}
 
 	privacy(bot, req, res) {
-		res.locals.stylesheets.push('legal');
+		res.locals.stylesheets.push('/css/legal.css');
 		return res.render('privacy');
 	}
 }

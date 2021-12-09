@@ -4,7 +4,7 @@
 const Controller = require('../../core/Controller');
 // const timezones = require('../../timezones.json');
 const config = require('../../core/config');
-const logger = require('../../core/logger');
+const logger = require('../../core/logger').get('Modules');
 const utils = require('../../core/utils');
 const db = require('../../core/models');
 const models = db.models;
@@ -16,10 +16,10 @@ class Modules extends Controller {
 		const basePath = '/api/modules/:id';
 
 		this.guildCache = new Map();
-		this.guildCacheInterval = setInterval(this.clearCaches.bind(this), 10000);
-
 		this.channelCache = new Map();
-		this.channelCacheInterval = setInterval(this.clearCaches.bind(this), 10000);
+		this.bansCache = new Map();
+
+		this.clearCacheInterval = setInterval(this.clearCaches.bind(this), 10000);
 
 		return {
 			beforeModules: {
@@ -65,6 +65,11 @@ class Modules extends Controller {
 				uri: `${basePath}/autoroles`,
 				handler: this.getAutoroles.bind(this),
 			},
+			bans: {
+				method: 'get',
+				uri: `${basePath}/bans/:page`,
+				handler: this.getBans.bind(this),
+			},
 			channels: {
 				method: 'get',
 				uri: `${basePath}/channels`,
@@ -79,6 +84,11 @@ class Modules extends Controller {
 				method: 'get',
 				uri: `${basePath}/commands/:type?/:typeId?`,
 				handler: this.getCommands.bind(this),
+			},
+			moduleCommands: {
+				method: 'get',
+				uri: `${basePath}/modulecommands/:module`,
+				handler: this.getModuleCommands.bind(this),
 			},
 			customcommands: {
 				method: 'get',
@@ -120,6 +130,11 @@ class Modules extends Controller {
 				uri: `${basePath}/roles`,
 				handler: this.getRoles.bind(this),
 			},
+			reddit: {
+				method: 'get',
+				uri: `${basePath}/reddit`,
+				handler: this.getReddit.bind(this),
+			},
 			settings: {
 				method: 'get',
 				uri: `${basePath}/settings`,
@@ -145,6 +160,17 @@ class Modules extends Controller {
 				uri: `${basePath}/voicetextlinking`,
 				handler: this.getVTL.bind(this),
 			},
+			welcome: {
+				method: 'get',
+				uri: `${basePath}/welcome`,
+				handler: this.getWelcome.bind(this),
+			},
+			reactionroles: {
+				method: 'get',
+				uri: `${basePath}/reactionroles`,
+				handler: this.getReactionroles.bind(this),
+			},
+
 		};
 	}
 
@@ -160,6 +186,12 @@ class Modules extends Controller {
 				this.channelCache.delete(key);
 			}
 		}
+
+		for (let [key, o] of this.bansCache) {
+			if (Date.now() - o.cachedAt > 300000) {
+				this.bansCache.delete(key);
+			}
+		}
 	}
 
 	isAdmin(guild, member) {
@@ -167,24 +199,22 @@ class Modules extends Controller {
 		return false;
 	}
 
-	_formatChannel(channel) {
-		return utils.pick(channel, 'id', 'type', 'name', 'position', 'parentID');
+	_formatChannel(channel, ...keys) {
+		return utils.pick(channel, 'id', 'type', 'name', 'position', 'parentID', ...keys);
 	}
 
 	_formatEmoji(emoji) {
 		return utils.pick(emoji, 'id', 'name', 'animated');
 	}
 
-	async _getChannels(guildId) {
-		const { snowClient: client } = this.bot;
-
+	async _getChannels(guildId, ...keys) {
 		const channelCache = this.channelCache.get(guildId);
 		let channels;
 
 		if (channelCache) {
 			channels = channelCache.channels || [];
 		} else {
-			channels = await client.guild.getGuildChannels(guildId);
+			channels = await this.client.getRESTGuildChannels(guildId);
 			this.channelCache.set(guildId, {
 				cachedAt: Date.now(),
 				channels: channels || [],
@@ -193,8 +223,38 @@ class Modules extends Controller {
 
 		channels = channels || [];
 
-		return channels.map(c => this._formatChannel(c))
-			.sort((c1, c2) => (c1.position !== c2.position) ? c1.position - c2.position : c1.id - c2.id);
+		return Object.values(channels.sort((a, b) => {
+			if (a.type !== 4 && b.type === 4) { return 1; }
+			if (a.type === 4 && b.type !== 4) { return -1; }
+			if (a.type === 2 && b.type !== 2) { return 1; }
+			if (a.type !== 2 && b.type === 2) { return -1; }
+			return (a.position !== b.position) ? a.position - b.position : a.id - b.id;
+		})
+		.reduce((a, b) => {
+			if (b.type === 4) {
+				b.channels = [];
+				a[b.id] = b;
+			} else if (b.parentID) {
+				a[b.parentID].channels = a[b.parentID].channels || [];
+				a[b.parentID].channels.push(b);
+			} else {
+				a[b.id] = b;
+			}
+			return a;
+		}, {}))
+		.reduce((a, b) => {
+			if (b.channels) {
+				let { channels, ...c } = b;
+				a.push(c);
+				a = a.concat(channels);
+			} else {
+				a.push(b);
+			}
+			return a;
+		}, []).map(c => this._formatChannel(c, ...keys));
+
+		// return channels.map(c => this._formatChannel(c, ...keys))
+		// 	.sort((c1, c2) => (c1.position !== c2.position) ? c1.position - c2.position : c1.id - c2.id);
 	}
 
 	_getRoles(guild) {
@@ -226,7 +286,6 @@ class Modules extends Controller {
 		}
 
 		const guilds = req.session.guilds;
-		const { snowClient: client } = bot;
 
 		if (!req.params.id) {
 			return res.status(400).send('Missing id.');
@@ -245,7 +304,7 @@ class Modules extends Controller {
 			} else {
 				try {
 					let [restGuild, guildConfig] = await Promise.all([
-						client.guild.getGuild(req.params.id),
+						this.client.getRESTGuild(req.params.id),
 						config.guilds.fetch(req.params.id),
 					]);
 
@@ -317,6 +376,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -331,6 +391,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -344,19 +405,37 @@ class Modules extends Controller {
 
 			return res.send({ channels, messages });
 		} catch (err) {
+			logger.error(err);
+			return res.status(500).send('Something went wrong.');
+		}
+	}
+
+
+	async getReddit(bot, req, res) {
+		try {
+			const [channels, subscriptions] = await Promise.all([
+				this._getChannels(req.params.id, 'nsfw'),
+				db.collection('reddits').find({ guildId: req.params.id }).toArray(),
+			]);
+
+			return res.send({ channels, subscriptions });
+		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
 
 	async getAutopurge(bot, req, res) {
 		try {
-			const [channels, purges] = await Promise.all([
+			const [channels, roles, purges] = await Promise.all([
 				this._getChannels(req.params.id),
+				this._getRoles(res.locals.guild),
 				db.collection('autopurges').find({ guild: req.params.id }).toArray(),
 			]);
 
-			return res.send({ channels, purges });
+			return res.send({ channels, purges, roles });
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -386,6 +465,48 @@ class Modules extends Controller {
 			};
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
+			return res.status(500).send('Something went wrong.');
+		}
+	}
+
+	async getBans(bot, req, res) {
+		const page = req.params.page;
+
+		try {
+			let cachedBans = this.bansCache.get(req.params.id);
+			let bans;
+
+			if (!cachedBans) {
+				bans = await this.client.getGuildBans(req.params.id);
+				this.bansCache.set(req.params.id, {
+					cachedAt: Date.now(),
+					bans: JSON.parse(JSON.stringify(bans)) || [],
+				});
+			} else {
+				bans = cachedBans.bans;
+			}
+
+			if (req.query.search) {
+				console.log(req.query.search);
+				bans = bans.filter(ban =>
+					(ban.reason && ban.reason.search(new RegExp(req.query.search, 'g')) !== -1) ||
+					ban.user.username.search(new RegExp(req.query.search, 'g')) !== -1 ||
+					ban.user.discriminator.search(new RegExp(req.query.search, 'g')) !== -1);
+			}
+
+			const start = (page - 1) * 50;
+			const pages = Math.ceil(bans.length / 50);
+
+			console.log(start, bans.length);
+
+			bans = bans.slice(start, start + 50);
+
+			console.log(bans.length);
+
+			return res.status(200).send({ bans, pages });
+		} catch (err) {
+			console.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -404,6 +525,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -413,6 +535,7 @@ class Modules extends Controller {
 			const channels = await this._getChannels(req.params.id);
 			return res.send({ channels });
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -424,6 +547,7 @@ class Modules extends Controller {
 
 			return res.send({ cleverbot, channels });
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -498,6 +622,76 @@ class Modules extends Controller {
 		});
 	}
 
+	async getModuleCommands(bot, req, res) {
+		const guildConfig = res.locals.guildConfig;
+
+		let commands = config.commands;
+
+		const [channels, roles] = await Promise.all([
+			this._getChannels(req.params.id),
+			this._getRoles(res.locals.guild),
+		]);
+
+		// remove admin commands
+		commands = commands.filter(c => c.permissions !== 'admin')
+			.map(c => {
+				let commandConfig = guildConfig;
+
+				if (req.params.type) {
+					let type = `${req.params.type}Permissions`;
+					commandConfig = guildConfig[type] ? (guildConfig[type][req.params.typeId] || guildConfig[type]) : {};
+				}
+
+				if (commandConfig.commands && typeof commandConfig.commands[c.name] === 'object') {
+					c = Object.assign(c, commandConfig.commands[c.name]);
+					// c.enabled = commandConfig.commands[c.name].enabled || false;
+				} else {
+					c.enabled = (!commandConfig.commands || commandConfig.commands[c.name] !== false);
+				}
+				c.group = c.group || c.module;
+
+				if (guildConfig.modules[c.group]) c.noedit = true;
+				if (c.commands) {
+					c.commands = c.commands
+						.filter(s => !s.default)
+						.map(s => {
+							s.enabled = (!commandConfig.subcommands || !commandConfig.subcommands[c.name] || commandConfig.subcommands[c.name][s.name] !== false);
+							return s;
+						});
+				}
+
+				return c;
+			}); // .sort((a, b) => +(a.group > b.group) || +(a.group === b.group) - 1);
+
+		// remove duplicates
+		commands = [...new Set(commands)];
+
+		commands = commands.filter(c => c.module && c.module === req.params.module);
+
+		// index by group
+		// commands = commands.reduce((i, o) => {
+		// 	i[o.module] = i[o.module] || [];
+		// 	i[o.module].push(o);
+		// 	return i;
+		// }, {});
+
+		// create grouped array
+		// for (let key in commands) {
+		// 	commandGroups.push({
+		// 		name: key,
+		// 		commands: commands[key],
+		// 	});
+		// }
+
+		// commandGroups[commandGroups.length - 1].isLast = true;
+
+		return res.send({
+			commands: commands,
+			prefix: guildConfig.prefix || '?',
+			channels, roles,
+		});
+	}
+
 	async getCustomCommands(bot, req, res) {
 		const payload = {
 			customcommands: res.locals.guildConfig.customcommands || {},
@@ -522,6 +716,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -535,6 +730,7 @@ class Modules extends Controller {
 			]);
 			return res.send({ channels, roles, messages });
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -554,6 +750,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -572,6 +769,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -583,6 +781,7 @@ class Modules extends Controller {
 
 			return res.send(queue);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -601,6 +800,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -610,30 +810,37 @@ class Modules extends Controller {
 			const roles = await this._getRoles(res.locals.guild);
 			return res.send({ roles });
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
 
 	async getSettings(bot, req, res) {
-		const { snowClient: client } = bot;
-
 		const guild = res.locals.guild;
 		const guildConfig = res.locals.guildConfig;
 
 		try {
-			let clientMember = await client.guild.getGuildMember(guild.id, bot.user.id);
+			const [clientMember, channels, roles] = await Promise.all([
+				this.client.getRESTGuildMember(guild.id, bot.user.id),
+				this._getChannels(req.params.id),
+				this._getRoles(res.locals.guild),
+			]);
 			const payload = {
 				nick: clientMember.nick,
 				server: {
+					name: guildConfig.name,
 					modonly: guildConfig.modonly,
 					prefix: guildConfig.prefix,
+					region: guildConfig.region,
+					memberCount: guildConfig.memberCount,
 					timezone: guildConfig.timezone,
 				},
+				channels, roles,
 			};
 
 			return res.send(payload);
 		} catch (err) {
-			console.error(err);
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -649,6 +856,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -663,6 +871,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -677,6 +886,7 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
@@ -692,6 +902,43 @@ class Modules extends Controller {
 
 			return res.send(payload);
 		} catch (err) {
+			logger.error(err);
+			return res.status(500).send('Something went wrong.');
+		}
+	}
+
+	async getWelcome(bot, req, res) {
+		try {
+			const [channels, roles] = await Promise.all([
+				this._getChannels(req.params.id),
+				this._getRoles(res.locals.guild),
+			]);
+			const payload = {
+				welcome: res.locals.guildConfig.welcome || {},
+				channels, roles,
+			};
+
+			return res.send(payload);
+		} catch (err) {
+			logger.error(err);
+			return res.status(500).send('Something went wrong.');
+		}
+	}
+	async getReactionroles(bot, req, res) {
+		try {
+			const [channels, roles, emojis] = await Promise.all([
+				this._getChannels(req.params.id),
+				this._getRoles(res.locals.guild),
+				this._getEmojis(res.locals.guild),
+			]);
+			const payload = {
+				reactionroles: res.locals.guildConfig.reactionroles || {},
+				channels, roles, emojis,
+			};
+
+			return res.send(payload);
+		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}

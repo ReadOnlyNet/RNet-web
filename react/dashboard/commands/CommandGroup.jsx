@@ -127,12 +127,12 @@ export default class CommandGroup extends React.Component {
 		const module = this.props.data.module;
 
 		const roles = this.state.roles;
-		const channels = this.state.channels.filter(c => c.type === 0);
+		const channels = this.state.channels.filter(c => (c.type === 0 || c.type === 4));
 		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
 		const roleOptions = roles.map(r => ({ value: r.id, label: r.name }));
 
-		const allowedChannels = channels.filter(c => c.type === 0 && this.state.allowedChannels.find(i => (i && (i.id || i)) === c.id));
-		const ignoredChannels = channels.filter(c => c.type === 0 && this.state.ignoredChannels.find(i => (i && (i.id || i))  === c.id));
+		const allowedChannels = channels.filter(c => this.state.allowedChannels.find(i => (i && (i.id || i)) === c.id));
+		const ignoredChannels = channels.filter(c => this.state.ignoredChannels.find(i => (i && (i.id || i))  === c.id));
 
 		const allowedRoles = roles.filter(r => this.state.allowedRoles.find(i => (i && (i.id || i)) === r.id));
 		const ignoredRoles = roles.filter(r => this.state.ignoredRoles.find(i => (i && (i.id || i)) === r.id));
@@ -146,15 +146,18 @@ export default class CommandGroup extends React.Component {
 		};
 
 		return (<div id={'commands-' + group.name} className={className}>
-			<div className='controls command-group-controls'>
-				<button className='button is-success' onClick={this.openEnable}>Enable All {group.name} Commands</button>
-				<button className='button is-danger' onClick={this.openDisable}>Disable All {group.name} Commands</button>
+			<div className='command-group-heading'>
+				<h3 className='title is-4'>{group.name}</h3>
 				<a className='control command-settings' onClick={this.openSettings}>
 					<span className='icon is-link'>
 						<i className='fa fa-cog'></i>
 					</span>
 					<label>Settings</label>
 				</a>
+			</div>
+			<div className='controls command-group-controls'>
+				<button className='button group-enable' onClick={this.openEnable}>Enable All</button>
+				<button className='button group-disable' onClick={this.openDisable}>Disable All</button>
 			</div>
 			<div className='module-toggles'>{commands}</div>
 			<Modal open={this.state.settingsOpen} classNames={settingsClasses} little={true} onClose={this.closeSettings}>

@@ -17,7 +17,9 @@ if (document.getElementById('account-mount') !== null) {
 }
 if (document.getElementById('upgrade-mount') !== null) {
   ReactDOM.render(
-    <Upgrade/>,
+    <BrowserRouter>
+      <Route path='/upgrade' component={Upgrade} />
+    </BrowserRouter>,
     document.getElementById('upgrade-mount'),
   );
 }

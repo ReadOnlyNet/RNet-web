@@ -215,7 +215,7 @@ class Server extends Controller {
 			(req.session.user.id === config.client.admin || config.overseers.includes(req.session.user.id)));
 
 		if (!guild && isAdmin) {
-			guild = await this.client.guild.getGuild(req.params.id);
+			guild = await this.client.getRESTGuild(req.params.id);
 		}
 
 		if (!guild) {
@@ -363,13 +363,14 @@ class Server extends Controller {
 	 * @param {Object} res Express response
 	 */
 	async updateNick(bot, req, res) {
+		if (!req.body.nick || req.body.nick.length < 3) {
+			return res.status(500).send('Nickname too short.');
+		}
 		if (req.body.nick.length > this.settingLimits.nickname) {
 			return res.status(500).send('Nickname is too long.');
 		}
 
-		const { snowClient: client } = this.bot;
-
-		return client.guild.updateSelf(req.params.id, { nick: req.body.nick })
+		return this.client.editNickname(req.params.id, req.body.nick)
 			.then(() => {
 				this.weblog(req, req.params.id, req.session.user, `Changed nickname to ${req.body.nick}`);
 				this.log(req.params.id, `Nickname changed to: ${req.body.nick}`);
@@ -689,6 +690,10 @@ class Server extends Controller {
 
 		if (req.body.settings.muteTime) {
 			guildConfig.automod[req.body.setting].muteTime = req.body.settings.muteTime;
+		}
+
+		if (req.body.settings.muteCount) {
+			guildConfig.automod[req.body.setting].muteCount = req.body.settings.muteCount;
 		}
 
 		const key = `automod.${req.body.setting}`;
@@ -1096,6 +1101,11 @@ class Server extends Controller {
 
 		guildConfig.autoroles = guildConfig.autoroles || {};
 		guildConfig.autoroles.autoroles = guildConfig.autoroles.autoroles || [];
+
+		if (config.isPremium && !guildConfig.isPremium && guildConfig.autoroles.autoroles.length >= 3) {
+			return res.status(403, 'You can only have 3 autoroles. Please upgrade to RNet Premium to add more.');
+		}
+
 		guildConfig.autoroles.autoroles.push(autorole);
 
 		return this.update(req.params.id, { $set: { autoroles: guildConfig.autoroles } })

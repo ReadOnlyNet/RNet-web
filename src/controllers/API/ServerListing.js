@@ -6,7 +6,8 @@ const db = require('../../core/models');
 const minio = require('../../core/minio');
 const utils = require('../../core/utils');
 const sharp = require('sharp');
-// const logger = require('../../core/logger');
+const redis = require('../../core/redis');
+const logger = require('../../core/logger').get('ServerListing');
 
 class ServerListing extends Controller {
 	constructor(bot) {
@@ -15,7 +16,18 @@ class ServerListing extends Controller {
 		const basePath = '/api/server/:id/serverlisting';
 
 		this.channelCache = new Map();
-		this.channelCacheInterval = setInterval(this.clearCaches.bind(this), 10000);
+		this.channelCacheInterval = setInterval(this.clearCaches.bind(this), 10000);7
+		this.availableLanguages = [
+			'English',
+			'Français',
+			'Deutsch',
+			'Português',
+			'Türkçe',
+			'Русский',
+			'Español',
+			'Nederlands',
+			'Polski',
+		];
 
 		return {
 			get: {
@@ -28,6 +40,11 @@ class ServerListing extends Controller {
 				memoryUpload: true,
 				uri: `${basePath}/update`,
 				handler: this.update.bind(this),
+			},
+			toggleOption: {
+				method: 'post',
+				uri: `/api/serverlist/:id/toggleOption`,
+				handler: this.toggleOption.bind(this),
 			},
 		};
 	}
@@ -45,15 +62,13 @@ class ServerListing extends Controller {
 	}
 
 	async _getChannels(guildId) {
-		const { snowClient: client } = this.bot;
-
 		const channelCache = this.channelCache.get(guildId);
 		let channels;
 
 		if (channelCache) {
 			channels = channelCache.channels || [];
 		} else {
-			channels = await client.guild.getGuildChannels(guildId);
+			channels = await this.client.getRESTGuildChannels(guildId);
 			this.channelCache.set(guildId, {
 				cachedAt: Date.now(),
 				channels: channels || [],
@@ -78,13 +93,23 @@ class ServerListing extends Controller {
 			return Promise.reject('Unable to resolve invite code.');
 		}
 
+		const key = `rnet:web:serverlisting:invalidInviteCount:${(new Date()).getHours()}`;
+		const invalidInviteCount = await redis.get(key);
+		redis.expire(key, 60 * 60);
+
+		if (invalidInviteCount && parseInt(invalidInviteCount) >= 249) {
+			return Promise.reject('Try again later (inv).');
+		}
+
 		try {
-			const response = await superagent.get(`https://discordapp.com/api/invite/${code}?with_counts=true`);
-			if (response && response.body) {
+			const response = await superagent.get(`https://discordapp.com/api/v6/invite/${code}?with_counts=true`);
+			if (response && !response.error && response.body) {
 				return response.body;
 			}
+			await redis.incr(key);
 			return Promise.reject(`Invite not found.`);
 		} catch (err) {
+			await redis.incr(key);
 			return Promise.reject('Invalid invite.');
 		}
 	}
@@ -151,19 +176,10 @@ class ServerListing extends Controller {
 		}
 	}
 
-	async processAndUploadImage(fileKey, ogFileKey, bucket, buffer, vertical) {
+	async processAndUploadImage(fileKey, bucket, buffer, vertical) {
 		const width = vertical ? 242 : 238;
 		const height = vertical ? 416 : 271;
 		let blurBuffer = await sharp(buffer)
-			.resize(width, height)
-			.blur(3.5)
-			.png({
-				progressive: true,
-				compressionLevel: 9,
-			})
-			.toBuffer();
-
-		let ogBuffer = await sharp(buffer)
 			.resize(width, height)
 			.png({
 				progressive: true,
@@ -172,7 +188,6 @@ class ServerListing extends Controller {
 			.toBuffer();
 
 		return new Promise((resolve, reject) => {
-			minio.putObject(bucket, ogFileKey, ogBuffer, ogBuffer.size, (err, etag) => { });
 			minio.putObject(bucket, fileKey, blurBuffer, blurBuffer.size, (err, etag) => {
 				if (err) reject(err);
 				resolve(etag);
@@ -184,6 +199,7 @@ class ServerListing extends Controller {
 		req.uploadDir = `serverlisting/${req.params.id}`;
 		upload.fields([{ name: 'backgroundImageVerticalFile' }, { name: 'backgroundImageFile' }])(req, res, async (err) => {
 			if (err) {
+				logger.error(err);
 				res.status(500).send(err.message);
 				return;
 			}
@@ -191,13 +207,13 @@ class ServerListing extends Controller {
 			try {
 				let {
 					inviteUrl,
-					// borderColor,
 					description,
 					listed,
 					tags,
 					categories,
 					links,
 					defaultInviteChannel,
+					language,
 				} = req.body;
 
 				tags = JSON.parse(tags);
@@ -221,8 +237,7 @@ class ServerListing extends Controller {
 
 				if (!inviteUrl) {
 					try {
-						const { snowClient: client } = this.bot;
-						const invite = await client.channel.createChannelInvite(defaultInviteChannel, { max_age: 0 });
+						const invite = await this.client.createChannelInvite(defaultInviteChannel, { maxAge: 0 });
 						inviteUrl = `https://discord.gg/${invite.code}`;
 					} catch (e) {
 						res.status(500).send('Could not create an invite');
@@ -235,33 +250,37 @@ class ServerListing extends Controller {
 					return;
 				}
 
-				try {
-					const inviteInfo = await this.resolveInvite(inviteUrl);
+				const coll = db.collection('serverlist_store');
+				let server = await coll.findOne({ id });
 
-					if (!inviteInfo) {
-						res.status(500).send('Invalid invite');
-						return;
-					}
-
-					if (inviteInfo && inviteInfo.guild.id !== id) {
-						res.status(500).send('Invalid invite');
-						return;
-					}
-
-					if (inviteInfo && inviteInfo.guild.icon) {
-						icon = `https://cdn.discordapp.com/icons/${id}/${inviteInfo.guild.icon}.png?size=128`;
-					}
-				} catch (err) {
-					res.status(500).send(err);
+				if (server && server.blacklisted) {
+					res.status(500).send('This server has been blacklisted.');
 					return;
 				}
 
-				// if (borderColor) {
-				// 	if (!/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(borderColor)) {
-				// 		res.status(500).send('Invalid border color');
-				// 		return;
-				// 	}
-				// }
+				try {
+					if (!server || server.inviteUrl !== inviteUrl) {
+						const inviteInfo = await this.resolveInvite(inviteUrl);
+
+						if (!inviteInfo) {
+							res.status(500).send('Invalid invite');
+							return;
+						}
+
+						if (inviteInfo && inviteInfo.guild.id !== id) {
+							res.status(500).send('Invalid invite');
+							return;
+						}
+
+						if (inviteInfo && inviteInfo.guild.icon) {
+							icon = `https://cdn.discordapp.com/icons/${id}/${inviteInfo.guild.icon}.png?size=128`;
+						}
+					}
+				} catch (err) {
+					logger.error(err);
+					res.status(500).send(err);
+					return;
+				}
 
 				if (description) {
 					if (description.length > 200) {
@@ -334,6 +353,13 @@ class ServerListing extends Controller {
 					categoriesFlattened = categories.reduce((previousValue, currentValue) => `${previousValue} ${currentValue}`, '');
 				}
 
+				if (language) {
+					if (!this.availableLanguages.includes(language)) {
+						res.status(500).send('Invalid language');
+						return;
+					}
+				}
+
 				const serverColl = db.collection('servers');
 				const guildConfig = await serverColl.findOne({ _id: id });
 
@@ -342,39 +368,29 @@ class ServerListing extends Controller {
 					return;
 				}
 
-				const coll = db.collection('serverlist_store');
-				let server = await coll.findOne({ id });
-
-				if (server && server.blacklisted) {
-					res.status(500).send('This server has been blacklisted.');
-					return;
-				}
-
 				const minioBucket = 'server-listing';
 				if (server) {
 					if ((server.premium || server.featured) && backgroundImageFile && backgroundImageFile.length > 0) {
 						backgroundImageFile = backgroundImageFile[0];
 						const fileKey = `${id}/regular/bg.png`;
-						const ogFileKey = `${id}/regular/original.png`;
 
-						await this.processAndUploadImage(fileKey, ogFileKey, minioBucket, backgroundImageFile.buffer, false);
+						await this.processAndUploadImage(fileKey, minioBucket, backgroundImageFile.buffer, false);
 						backgroundImageFile.key = fileKey;
 					}
 
 					if (server.featured && backgroundImageVerticalFile && backgroundImageVerticalFile.length > 0) {
 						backgroundImageVerticalFile = backgroundImageVerticalFile[0];
 						const fileKey = `${id}/vertical/bg.png`;
-						const ogFileKey = `${id}/vertical/original.png`;
 
-						await this.processAndUploadImage(fileKey, ogFileKey, minioBucket, backgroundImageVerticalFile.buffer, true);
+						await this.processAndUploadImage(fileKey, minioBucket, backgroundImageVerticalFile.buffer, true);
 						backgroundImageVerticalFile.key = fileKey;
 					}
 				}
 
 				// Timestamp used for cache bursting
 				const timestamp = (new Date()).getTime();
-				const backgroundImage = backgroundImageFile && `https://s.dyno.gg/${minioBucket}/${backgroundImageFile.key}?cb=${timestamp}`;
-				const backgroundImageVertical = backgroundImageVerticalFile && `https://s.dyno.gg/${minioBucket}/${backgroundImageVerticalFile.key}?cb=${timestamp}`;
+				const backgroundImage = backgroundImageFile && `https://s.rnet.cf/${minioBucket}/${backgroundImageFile.key}?cb=${timestamp}`;
+				const backgroundImageVertical = backgroundImageVerticalFile && `https://s.rnet.cf/${minioBucket}/${backgroundImageVerticalFile.key}?cb=${timestamp}`;
 
 				this.weblog(req, req.params.id, req.session.user, `Updated server listing information`);
 
@@ -384,7 +400,6 @@ class ServerListing extends Controller {
 						icon: guildConfig.iconURL,
 						name: guildConfig.name,
 						memberCount: guildConfig.memberCount,
-						// borderColor,
 						description,
 						listed,
 						// backgroundImage,
@@ -396,12 +411,12 @@ class ServerListing extends Controller {
 						links,
 						defaultInviteChannel,
 						inviteUrl,
+						serverLanguage: language,
 					};
 
 					const webhookContent = {
 						username: 'RNet Police',
 						content: '',
-						embed: 'hack to make snowtransfer work',
 						embeds: [
 							{
 								title: guildConfig.name,
@@ -415,11 +430,10 @@ class ServerListing extends Controller {
 							},
 						],
 					};
-					this.client.webhook.executeWebhook('503474669232586752', 'qTtgBcyes3MpmVmvUNijKnibe0YZK0gfZdbriC6eHoFpltgTdymqyjAdFGdU9KqYpP3o', webhookContent);
+					this.client.executeWebhook('511845053338091523', 'hIBK3AFfVaWzlA5bHNK9BU3Vg1l-yYr1UdryA3tnDvj6NdSi76G5F4Ec1V1y9wPRbOlj', webhookContent);
 					await coll.insert(server);
 				} else {
 					let setData = {};
-					// setData.borderColor = borderColor || '#202020';
 					setData.description = description;
 					setData.listed = listed || false;
 					setData.inviteUrl = inviteUrl;
@@ -432,6 +446,7 @@ class ServerListing extends Controller {
 					setData.name = guildConfig.name || undefined;
 					setData.memberCount = guildConfig.memberCount;
 					setData.icon = icon || undefined;
+					setData.serverLanguage = language;
 
 					if (backgroundImage) {
 						setData.backgroundImage = backgroundImage;
@@ -447,6 +462,31 @@ class ServerListing extends Controller {
 				res.status(500).send(err.message);
 			}
 		});
+	}
+
+	async updateField(id, field, value) {
+		const coll = db.collection('serverlist_store');
+		const setData = {};
+
+		setData[field] = value;
+
+		return await coll.updateOne({ id }, { $set: setData });
+	}
+
+	async toggleOption(bot, req, res) {
+		if (!req.session || (!req.session.isAdmin && !req.session.listingAccess)) {
+			return res.status(403).send('Forbidden.');
+		}
+		if (!req.body || !req.body.hasOwnProperty('field') || !req.body.hasOwnProperty('value')) {
+			return res.status(500).send('Invalid request.');
+		}
+
+		try {
+			await this.updateField(req.params.id, req.body.field, req.body.value);
+			return res.status(200).send('OK');
+		} catch (err) {
+			return res.status(500).send(err);
+		}
 	}
 }
 

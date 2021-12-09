@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 'use strict';
 
 const path = require('path');
@@ -15,7 +14,7 @@ const multerS3 = require('multer-s3');
 const RedisStore = require('connect-redis')(session);
 const S3 = require('aws-sdk/clients/s3');
 const morgan = require('morgan');
-const logger = require('./logger');
+const logger = require('./logger').get('Server');
 const config = require('./config');
 const utils = require('./utils');
 const compareHelper = require('../helpers/compare');
@@ -23,6 +22,10 @@ const ifArrayHelper = require('../helpers/ifArray');
 const cookieParser = require('cookie-parser');
 const fileType = require('file-type');
 const reload = requireReload(require);
+const morganJson = require('morgan-json');
+const staticify = require('staticify')(path.join(__dirname, '..', '..', 'public'));
+const Sitemap = require('./sitemap');
+const robots = require('express-robots-txt')
 
 const s3 = new S3();
 
@@ -43,6 +46,7 @@ class Server {
 		this.enabled = true;
 		this.core = true;
 		this.list = false;
+		this.sitemap = new Sitemap();
 	}
 
 	/**
@@ -72,20 +76,37 @@ class Server {
 				compare: compareHelper,
 				ifArray: ifArrayHelper.ifArray,
 				unlessArray: ifArrayHelper.unlessArray,
+				log: (l) => console.log(l),
 				dynamicPartial: (name) => name,
 				toJSON: (object) => JSON.stringify(object),
+				getVersionedPath: (str) => staticify.getVersionedPath(str),
 			},
 		}));
 
 		app.set('view engine', 'hbs');
 		app.enable('view cache');
-		app.use(express.static(config.paths.public));
+
+		app.use(function(req, res, next) {
+			req.url = req.url.replace(/\/([^\/]+)\.[0-9a-f]+\.(css|js|jpg|png|gif|svg)$/, '/$1.$2');
+			next();
+		});
+
+		app.use(express.static(config.paths.public, { maxAge: '30 days' }));
 		app.use(bodyParser.json());
 		app.use(bodyParser.urlencoded({ extended: true }));
 		app.use(compression());
 		// app.use(multer({ dest: config.paths.uploads }).single('photo'));
-		app.use(flash());
+		// app.use(flash());
 		app.use(cookieParser());
+		app.use(staticify.middleware);
+
+		const sitemap = `${config.site.host.replace(/\/$/g, '')}/sitemap.xml`;
+		const disallow = ['/cgi-bin/'];
+		// Prevent premium and staff from being crawled
+		if (config.isPremium) {
+			disallow.push('/');
+		}
+		app.use(robots({ UserAgent: '*', Disallow: disallow, Sitemap: sitemap }));
 
 		this.upload = multer({
 			storage: multerS3({
@@ -142,7 +163,7 @@ class Server {
 		}
 
 		const sessionOpts = {
-			name: 'dynobot.sid',
+			name: 'rnetbot.sid',
 			secret: config.site.secret,
 			resave: false,
 			saveUninitialized: true,
@@ -174,12 +195,16 @@ class Server {
 		 * @type {Object}
 		 */
 		const stream = {
-			write: message => {
-				logger.info(message);
+			write: data => {
+				const dataObj = JSON.parse(data);
+				// ':realip - :remote-user [:date[clf]] - :userid ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'
+				const message = `${dataObj.realIp} ${dataObj.remoteUser} ${dataObj.userId} "${dataObj.method} ${dataObj.url} HTTP/${dataObj.httpVersion}" ${dataObj.status} ${dataObj.contentLength} "${dataObj.referrer}" "${dataObj.userAgent}`;
+				logger.info(message, 'morgan', dataObj);
 			},
 		};
 
 		morgan.token('userid', req => req.userid);
+		morgan.token('username', req => (req.session && req.session.user) ? `${req.session.user.username}#${req.session.user.discriminator}` : '');
 		morgan.token('realip', req => req.realip);
 
 		app.use((req, res, next) => {
@@ -194,14 +219,30 @@ class Server {
 					uuid: config.uuid,
 				},
 				externalStylesheets: [],
-				stylesheets: ['app'],
+				stylesheets: ['/css/app.css'],
 				scripts: [],
+				opengraph: { home: true },
 			};
 			next();
 		});
+
+		const morganFormat = morganJson({
+			realIp: ':realip',
+			remoteUser: ':remote-user',
+			date: ':date[clf]',
+			userId: ':userid',
+			username: ':username',
+			method: ':method',
+			url: ':url',
+			httpVersion: ':http-version',
+			status: ':status',
+			contentLength: ':res[content-length]',
+			referrer: ':referrer',
+			userAgent: ':user-agent',
+		});
+
 		// stream logs to winston using morgan
-		app.use(morgan(':realip - :remote-user [:date[clf]] - :userid ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-			{ stream: stream }));
+		app.use(morgan(morganFormat, { stream: stream }));
 
 		// app.use('/api/server/:id/serverlisting/update', formidable());
 		// set template data
@@ -214,7 +255,6 @@ class Server {
 		// 	stylesheets: ['app'],
 		// };
 
-
 		const controllers = [];
 		// load controllers
 		await utils.readdirRecursive(config.paths.controllers).then(files => {
@@ -223,16 +263,57 @@ class Server {
 				if (!Controller || typeof Controller !== 'function') {
 					return;
 				}
-				controllers.push(new Controller(this.client));
+				controllers.push(new Controller(this.client, this));
 			});
 		});
 
 		controllers.forEach((c) => this.registerMiddlewares(c));
 		controllers.forEach((c) => this.createRoutes(c));
 
+		app.use((err, req, res, next) => {
+			logger.error(err);
+
+			// respond with html page
+			if (req.accepts('html')) {
+				res.locals.stylesheets.push('/css/error.css');
+				return res.status(500).render(`errors/500`, { layout: 'error' });
+			}
+
+			// respond with json
+			if (req.accepts('json')) {
+				return res.status(500).send({ error: 'Internal Server Error' });
+			}
+
+			// default to plain-text. send()
+			return res.status(500).type('txt').send('Internal Server Error');
+		});
+
+		app.use(function(req, res, next){
+			// respond with html page
+			if (req.accepts('html')) {
+				res.locals.stylesheets.push('/css/error.css');
+				res.status(404).render('errors/404', { url: req.url });
+				return;
+			}
+
+			// respond with json
+			if (req.accepts('json')) {
+				res.status(404).send({ error: 'Not found' });
+				return;
+			}
+
+			// default to plain-text. send()
+			res.status(404).type('txt').send('Not found');
+		});
+
 		// create server
 		http.createServer(app).listen(app.get('port'), () => {
-			logger.info('Express server listening on port %d', app.get('port'));
+			// signal pm2 that we are ready
+			if (process.send) {
+				process.send('ready');
+			}
+			logger.debug(`Express server listening on port ${app.get('port')}`);
+			logger.info('Express server started succesfully');
 		});
 	}
 
@@ -276,7 +357,7 @@ class Server {
 			}
 
 			if (!(route.uri instanceof Array)) {
-				logger.info(`Registering middleware for ${route.uri}`);
+				logger.debug(`Registering middleware for ${route.uri}`);
 
 				this.app[route.method](route.uri, route.handler.bind(route, this.client));
 
@@ -284,7 +365,7 @@ class Server {
 			}
 
 			for (let uri of route.uri) {
-				logger.info(`Registering middleware for ${uri}`);
+				logger.debug(`Registering middleware for ${uri}`);
 
 				// create the express route
 				this.app[route.method](uri, route.handler.bind(route, this.client));
@@ -304,13 +385,23 @@ class Server {
 			}
 
 			if (!(route.uri instanceof Array)) {
-				logger.info(`Creating route for ${route.uri}`);
+				logger.debug(`Creating route for ${route.uri}`);
 
 				if (route.upload) {
-					this.app[route.method](route.uri, route.handler.bind(route, this.client, this.upload));
+					if (route.middleware) {
+						this.app[route.method](route.uri, route.middleware, route.handler.bind(route, this.client, this.upload));
+					} else {
+						this.app[route.method](route.uri, route.handler.bind(route, this.client, this.upload));
+					}
 				} else if (route.memoryUpload) {
-					this.app[route.method](route.uri, route.handler.bind(route, this.client, this.memoryUpload));
-				} else {
+					if (route.middleware) {
+						this.app[route.method](route.uri, route.middleware, route.handler.bind(route, this.client, this.memoryUpload));
+					} else {
+						this.app[route.method](route.uri, route.handler.bind(route, this.client, this.memoryUpload));
+					}
+				} else if (route.middleware) {
+					this.app[route.method](route.uri, route.middleware, route.handler.bind(route, this.client));
+			 	} else {
 					this.app[route.method](route.uri, route.handler.bind(route, this.client));
 				}
 
@@ -318,7 +409,7 @@ class Server {
 			}
 
 			for (let uri of route.uri) {
-				logger.info(`Creating route for ${uri}`);
+				logger.debug(`Creating route for ${uri}`);
 
 				// create the express route
 				this.app[route.method](uri, route.handler.bind(route, this.client));

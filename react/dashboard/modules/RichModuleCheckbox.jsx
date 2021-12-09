@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default class RichModuleCheckbox extends React.Component {
 	constructor() {
@@ -27,6 +28,9 @@ export default class RichModuleCheckbox extends React.Component {
 	}
 
     render() {
+		// const params = { id: 123 };
+		const params = this.props.match.params;
+		const module = this.props.module;
 		let spanProps = {};
 
 		if (this.props.description) {
@@ -37,17 +41,26 @@ export default class RichModuleCheckbox extends React.Component {
 		}
 
 		return (
-			<div className={`control rich-toggle rich-module is-pulled-left ${this.props.className || ''}${this.props.disabled ? 'locked' : (this.state.isEnabled ? 'enabled' : 'disabled')}`} onClick={this.onChange}>
+			<div className={`control rich-module is-pulled-left ${this.props.className || ''}${this.props.disabled ? 'locked' : (this.state.isEnabled ? 'enabled' : 'disabled')}`}>
 				<span {...spanProps}>
-					<input
-						className=""
-						type="checkbox"
-						checked={this.state.isEnabled}
-						onChange={this.onChange}/>
-					<label className="checkbox" htmlFor={this.props.text}>{this.props.text}</label>
+					<h4 className="title is-5" htmlFor={this.props.text}>{this.props.text}</h4>
+					<div className='command-toggle' onClick={this.onChange}>
+						<input
+							className=''
+							type='checkbox'
+							checked={this.state.isEnabled} 
+							onChange={this.onChange} />
+						<label className='checkbox' htmlFor={this.props.text}></label>
+					</div>
 				</span>
-				{this.props.helpText ? (<p className="help-text">{this.props.helpText}</p>) : ''}
-				<small>{this.props.disabled ? 'Unlock with Premium' : (this.state.isEnabled ? 'Click to Disable' : 'Click to Enable')}</small>
+				{this.props.helpText ? (<p className="help-text is-hidden-mobile">{this.props.helpText}</p>) : ''}
+				{(module.hasPartial || module.hasCommands) && (
+					<div className='controls'>
+						{module.hasPartial && (
+							<Link to={`/manage/${params.id}/modules/${module.partialId}`} className='button module-settings'>Settings</Link>)}
+						{module.hasCommands && (<Link to={`/manage/${params.id}/modules/${module.partialId}/commands`} className='button module-settings'>Commands</Link>)}
+					</div>
+				)}
 			</div>
 		);
 	}

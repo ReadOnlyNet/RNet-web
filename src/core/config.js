@@ -1,5 +1,3 @@
-/* eslint-disable object-curly-spacing */
-/* eslint-disable quote-props */
 'use strict';
 
 const path = require('path');
@@ -61,23 +59,47 @@ const config = {
 	beta:      getenv.bool('CLIENT_BETA', false),
 	staging:   getenv.bool('CLIENT_STAGING', false),
 	isPremium: getenv.bool('CLIENT_PREMIUM', false),
-	invite:    getenv('CLIENT_INVITE', 'https://discord.gg/Z95zhhCgt9'),
-	logLevel:  getenv('CLIENT_LOGLEVEL', 'info'),
-	cryptkey:  getenv('CRYPT_KEY', ''),
+	isLocal: getenv.bool('CLIENT_LOCAL', false),
+	invite:    getenv('CLIENT_INVITE', 'https://discord.gg/9W6EG56'),
+	logLevel:  getenv('CLIENT_LOGLEVEL', 'INFO'),
+	cryptkey:  getenv('CRYPT_KEY'),
 	defaultPermissions: '2134207679',
+	patreonClientId: getenv('PATREON_CLIENT_ID', null),
+	patreonClientSecret: getenv('PATREON_CLIENT_SECRET', null),
+	subscriptionWebhook: getenv('SUBSCRIPTION_WEBHOOK', null),
+	activationWebhook: getenv('ACTIVATION_WEBHOOK', null),
+	restartToken: getenv('RESTART_TOKEN', null),
 	pkg: pkg,
 	overseers: [
-		'393847930039173131',
+		'393847930039173131', // noob
+		'77205340050956288', // carti
+		'155700462119550976', // alt
+		'227115752396685313', // gin
 	],
 	testGuilds: [
+		'155149443606380545',
 		'538530739017220107',
+		'117093893345902593',
+		'213019300783587328',
+		'200167999267799040',
+		'225569325535330305',
+		'224170984083554304',
+		'213000764048670722',
 	],
 	betaGuilds: [],
 	avatar: 'images/rnet-v2-300.jpg',
 	state: getenv('CLIENT_STATE', 2),
-	servers: { 'prod01': 'Titan', 'prod02': 'Atlas', 'prod03': 'Pandora'},
-	clustersPerServer: 32,
-	shardsPerCluster: 6,
+	servers: {
+		titan: { name: 'Titan', state: 3 },
+		atlas: { name: 'Atlas', state: 4 },
+		pandora: { name: 'Pandora', state: 5 },
+		hype: { name: 'Hyperion', state: 6 },
+		prom: { name: 'Enceladus', state: 7 },
+		janus: { name: 'Janus', state: 8 },
+	},
+	clustersPerServer: 24,
+	shardsPerCluster: 8,
+	rpcToken: 'f18708a395110d0d1e.84a21ff90bc89e8206635871bb119e.fdee55ecab2176f3',
 };
 
 /**
@@ -126,8 +148,8 @@ config.paths = {
 config.client = {
 	id:     getenv('CLIENT_ID', ''),
 	secret: getenv('CLIENT_SECRET', ''),
-	// token:  getenv('CLIENT_TOKEN', ''),
-	game: 	getenv('CLIENT_GAME', '?help'),
+	token:  getenv('CLIENT_TOKEN', ''),
+	game: 	getenv('CLIENT_GAME', 'https://rnet.cf | ?help'),
 	userid: getenv('CLIENT_USER_ID', '550869101170655233'),
 	admin:  getenv('ADMIN_ID', ''),
 	cache: {
@@ -140,16 +162,12 @@ config.client = {
 	},
 };
 
-config.snowgate = {
-	host: getenv('SNOWGATE_HOST', 'http://localhost.com:4096'),
-	token: getenv('SNOWGATE_TOKEN', ''),
-};
-
 config.braintree = {
-  merchantId: getenv('BRAINTREE_MERCHANT_ID', ''),
-  publicKey: getenv('BRAINTREE_PUBLIC_KEY', ''),
-  privateKey: getenv('BRAINTREE_PRIVATE_KEY', ''),
+  merchantId: getenv('BRAINTREE_MERCHANT_ID'),
+  publicKey: getenv('BRAINTREE_PUBLIC_KEY'),
+  privateKey: getenv('BRAINTREE_PRIVATE_KEY'),
   sandbox: getenv.bool('BRAINTREE_SANDBOX', false),
+  encryption_key: getenv('BRAINTREE_DATA_ENCRYPTION_KEY'),
 };
 
 /**
@@ -168,24 +186,24 @@ config.site = {
 	host:        getenv('SITE_HOST', 'http://localhost.com'),
 	port:        getenv('SITE_PORT', 80),
 	listen_port: getenv('SITE_LISTEN_PORT', 8000),
-	secret:      getenv('SITE_SECRET', ''),
+	secret:      getenv('SITE_SECRET', '<SITE_SECRET>'),
 	recaptcha_site_key: getenv('RECAPTCHA_SITE_KEY', ''),
 	recaptcha_secret_key: getenv('RECAPTCHA_SECRET_KEY', ''),
 };
 
 config.premium = {
 	client: {
-		id:     getenv('PREMIUM_CLIENT_ID', ''),
+		id:     getenv('PREMIUM_CLIENT_ID', '<PREMIUM_CLIENT_ID>'),
 		secret: getenv('PREMIUM_CLIENT_SECRET', ''),
 		token:  getenv('PREMIUM_CLIENT_TOKEN', ''),
 		game: 	getenv('PREMIUM_CLIENT_GAME', 'https://rnet.cf | ?help'),
-		userid: getenv('PREMIUM_CLIENT_USER_ID', ''),
+		userid: getenv('PREMIUM_CLIENT_USER_ID', '168274283414421504'),
 	},
 	site: {
 		host:        getenv('PREMIUM_SITE_HOST', 'http://localhost.com'),
 		port:        getenv('PREMIUM_SITE_PORT', 80),
 		listen_port: getenv('PREMIUM_SITE_LISTEN_PORT', 8000),
-		secret:      getenv('PREMIUM_SITE_SECRET', ''),
+		secret:      getenv('PREMIUM_SITE_SECRET', '<SITE_SECRET>'),
 	},
 };
 
@@ -210,6 +228,10 @@ config.redis = {
 	auth: process.env.CLIENT_REDIS_AUTH && process.env.CLIENT_REDIS_AUTH.length ? process.env.CLIENT_REDIS_AUTH : null,
 };
 
+config.elastic = {
+	host: getenv('ELASTIC_HOST', ''),
+	minLogLevel: getenv('ELASTIC_LOG_LEVEL', 'INFO'),
+};
 /**
  * API configuration
  * @name config.api

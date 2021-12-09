@@ -98,56 +98,61 @@ export default class TagList extends React.Component {
             return <Loader />;
         }
 
-        return (
-            <div id="tags-list">
-                <Modal open={this.state.modalInfo.open} onClose={this.closeModal}>
-                    <EditTag
-                        prefix={this.state.prefix}
-                        name={this.state.modalInfo.name}
-                        value={this.state.modalInfo.value}
-                        serverid={this.props.match.params.id}
-                        tagList={this.tagList}
-                        onClose={this.closeModal}
-                    />
-                </Modal>
-                <div className="settings-content">
-                    {this.tags.length > 0 ?
-                        <div id="tagList">
-                            <p className="control">
-                                <input className="input search" placeholder="Search" type="text" title="Search" />
-                            </p>
-                            <table className="table is-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Author</th>
-                                        <th>Content</th>
-                                        <th></th>
+        const modalClasses = {
+            modal: 'commands-modal tag-modal',
+		};
+
+        return (<div id="tags-list" className='settings-panel'>
+            <Modal open={this.state.modalInfo.open} classNames={modalClasses} onClose={this.closeModal}>
+                <EditTag
+                    prefix={this.state.prefix}
+                    name={this.state.modalInfo.name}
+                    value={this.state.modalInfo.value}
+                    serverid={this.props.match.params.id}
+                    tagList={this.tagList}
+                    onClose={this.closeModal}
+                />
+            </Modal>
+            <div className="settings-content">
+                {this.tags.length > 0 ?
+                    <div id="tagList">
+                        <p className="control has-icons-right">
+                            <input className="input search" placeholder="Search" type="text" title="Search" />
+                            <span className="icon is-small is-right">
+                                <i className="fal fa-search"></i>
+                            </span>
+                        </p>
+                        <table className="table is-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Author</th>
+                                    <th>Content</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody className="list">
+                                {this.tags.map((tag, index) => (
+                                    <tr key={index}>
+                                        <td className="tag-name">{tag.tag}</td>
+                                        <td className="tag-author">{tag.author.username}#{tag.author.discriminator}</td>
+                                        <td className="command-response">
+                                            <code className="tag-content">{tag.content}</code>
+                                        </td>
+                                        <td>
+                                            <a className="button is-danger is-outlined is-rounded remove-tag" onClick={() => this.deleteTag(tag)}>Remove</a>
+                                            <a className="button is-info is-rounded tag-edit" onClick={() => this.openModal(tag)}>Edit</a>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="list">
-                                    {this.tags.map((tag, index) => (
-                                        <tr key={index}>
-                                            <td className="tag-name">{tag.tag}</td>
-                                            <td className="tag-author">{tag.author.username}#{tag.author.discriminator}</td>
-                                            <td className="command-response">
-                                                <code className="tag-content">{tag.content}</code>
-                                            </td>
-                                            <td>
-                                                <a className="button is-info tag-edit" onClick={() => this.openModal(tag)}>Edit</a>
-                                                <a className="button is-danger remove-tag" onClick={() => this.deleteTag(tag)}>Remove</a>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            <nav className="pagination" role="navigation" aria-label="pagination">
-                                <ul className="pagination-list"></ul>
-                            </nav>
-                        </div>
-                    : (<p>There are no tags to display.</p>)}
-                </div>
+                                ))}
+                            </tbody>
+                        </table>
+                        <nav className="pagination" role="navigation" aria-label="pagination">
+                            <ul className="pagination-list"></ul>
+                        </nav>
+                    </div>
+                : (<p>There are no tags to display.</p>)}
             </div>
-        );
+        </div>);
     }
 }

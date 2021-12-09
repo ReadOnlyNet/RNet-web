@@ -1,7 +1,7 @@
 'use strict';
 
 const Controller = require('../../core/Controller');
-const logger = require('../../core/logger');
+const logger = require('../../core/logger').get('MessageEmbed');
 const { models } = require('../../core/models');
 const config = require('../../core/config');
 
@@ -48,7 +48,6 @@ class MessageEmbed extends Controller {
 			return res.status(500).send('Premium verification failed');
 		}
 
-		const { snowClient: client } = bot;
 		let { name, channel, embed } = req.body.message;
 
 		if (!name || !channel || !embed) {
@@ -56,7 +55,7 @@ class MessageEmbed extends Controller {
 		}
 
 		try {
-			const message = await client.channel.createMessage(channel, { embed });
+			const message = await this.client.createMessage(channel, { embed });
 			const doc = new models.MessageEmbed(req.body.message);
 			doc.message = message.id;
 			await doc.save();
@@ -84,16 +83,11 @@ class MessageEmbed extends Controller {
 			return res.status(500).send('Premium verification failed');
 		}
 
-		const { snowClient: client } = bot;
 		const doc = req.body.message;
 		const channel = typeof doc.channel === 'object' ? doc.channel.id : doc.channel;
 
-		if (typeof channel !== 'string') {
-			return res.status(500).send('Something went wrong, please try refreshing.');
-		}
-
 		try {
-			await client.channel.deleteMessage(channel, doc.message);
+			await this.client.deleteMessage(channel, doc.message);
 		} catch (err) {
 			if (err.response && err.response.status !== 404) {
 				logger.error(err);
@@ -111,13 +105,12 @@ class MessageEmbed extends Controller {
 			this.weblog(req, req.params.id, req.session.user, 'Deleted Message Embed.');
 			return res.send('Deleted Message Embed.');
 		} catch (err) {
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}
 
 	async edit(bot, req, res) {
-		const { snowClient: client } = bot;
-
 		if (!req.body.message || !req.body.message._id) {
 			return res.status(400).send('Invalid message.');
 		}
@@ -135,17 +128,18 @@ class MessageEmbed extends Controller {
 		let msg;
 
 		try {
-			msg = await client.channel.editMessage(message.channel, message.message, { embed: message.embed });
+			msg = await this.client.editMessage(message.channel, message.message, { embed: message.embed });
 		} catch (err) {
 			logger.error(err);
-			if (err.response && err.response !== 404) {
+			// 10008 === Unknown Message
+			if (err.response && err.response.code !== 10008) {
 				return res.status(500).send('Error editing message in Discord.');
 			}
 		}
 
 		if (!msg) {
 			try {
-				msg = await client.channel.createMessage(message.channel, { embed: message.embed });
+				msg = await this.client.createMessage(message.channel, { embed: message.embed });
 			} catch (err) {
 				logger.error(err);
 				return res.status(500).send('Error sending message in Discord.');

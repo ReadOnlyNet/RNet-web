@@ -31,8 +31,8 @@ class Bar extends Controller {
 
 	async stats(bot, req, res) {
 		const [guildCounts, vc] = await Promise.all([
-			redis.hgetall(`dyno:guilds:161660517914509312`),
-			redis.hgetall(`dyno:vc`),
+			redis.hgetall(`rnet:guilds:161660517914509312`),
+			redis.hgetall(`rnet:vc`),
 		]).catch(() => false);
 
 		const data = {};
