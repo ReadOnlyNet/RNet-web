@@ -115,7 +115,7 @@ export default class Premium extends React.Component {
 								<div className={'subscription-header'}>
 									<div className={'title is-5 with-image'}><img className="image is-32x32" src={i.iconURL} /> {i.name}</div>
 									<div className={'button-group'}>
-										<a className={'button is-info'} href={`https://discordapp.com/oauth2/authorize?client_id=168274214858653696&scope=bot&permissions=2134207671&guild_id=${i._id}`}>Add Premium Bot</a>
+										<a className={'button is-info'} href={`https://discordapp.com/oauth2/authorize?client_id=<PREMIUM_CLIENT_ID>&scope=bot&permissions=2134207671&guild_id=${i._id}`}>Add Premium Bot</a>
 										<a className={'button is-danger'} onClick={() => { this.deactivate(i); }}>Deactivate</a>
 									</div>
 								</div>

@@ -90,7 +90,7 @@ class Server {
 		this.upload = multer({
 			storage: multerS3({
 				s3: s3,
-				bucket: 'cdn.dyno.gg',
+				bucket: 'cdn.rnet.cf',
 				acl: 'public-read',
 				metadata: (req, file, cb) => {
 					cb(null, { fieldName: file.fieldname });
