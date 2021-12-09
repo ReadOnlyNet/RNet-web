@@ -127,7 +127,7 @@ export default class ActivatedServers extends React.Component {
                                         <div className={'subscription-header'}>
                                             <div className={'title is-5 with-image'}><img alt="Discord server logo" className="image is-32x32" src={i.iconURL} /> {i.name}</div>
                                             <div className={'button-group'}>
-                                                <a className={'button is-info is-rounded'} href={`https://discordapp.com/oauth2/authorize?client_id=168274214858653696&scope=bot&permissions=2134207671&guild_id=${i._id}`}>Add Premium Bot</a>
+                                                <a className={'button is-info is-rounded'} href={`https://discordapp.com/oauth2/authorize?client_id=<PREMIUM_CLIENT_ID>&scope=bot&permissions=2134207671&guild_id=${i._id}`}>Add Premium Bot</a>
                                                 <a className={'button is-light is-rounded'} onClick={() => { this.deactivate(i); }}>Deactivate</a>
                                             </div>
                                         </div>
@@ -148,7 +148,7 @@ export default class ActivatedServers extends React.Component {
                                         <div className={'subscription-header'}>
                                             <div className={'title is-5 with-image'}><img alt="Discord server logo" className="image is-32x32" src={i.iconURL} /> {i.name}</div>
                                             <div className={'button-group'}>
-                                                <a className={'button is-info is-rounded'} href={`https://discordapp.com/oauth2/authorize?client_id=168274214858653696&scope=bot&permissions=2134207671&guild_id=${i._id}`}>Add Premium Bot</a>
+                                                <a className={'button is-info is-rounded'} href={`https://discordapp.com/oauth2/authorize?client_id=<PREMIUM_CLIENT_ID>&scope=bot&permissions=2134207671&guild_id=${i._id}`}>Add Premium Bot</a>
                                                 <a className={'button is-light is-rounded'} onClick={() => { this.deactivate(i); }}>Deactivate</a>
                                             </div>
                                         </div>
