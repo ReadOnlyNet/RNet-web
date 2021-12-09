@@ -59,7 +59,7 @@ class Client {
 
 		this.user = await this.snowClient.user.getSelf().catch(err => logger.error(err));
 
-		await this.server.start(this);
+		this.server.start(this);
 	}
 }
 

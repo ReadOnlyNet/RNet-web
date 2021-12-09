@@ -27,7 +27,8 @@
         {{>topnav}}
     </div>
 
-    <div class="level-right">
+    <div id='auth-mount'></div>
+    {{!-- <div class="level-right">
         {{#if user}}
             <div class="level-item">
                 {{>serverselect}}
@@ -39,12 +40,12 @@
                     <img class="image is-32x32" src="https://discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png" />
                 {{/if}}
             </a>
-            {{!-- <a class="level-item" href="/">{{user.username}}</a> --}}
+            <a class="level-item" href="/">{{user.username}}</a>
             <a class="level-item button is-info" href="/logout" title="Logout">Logout</a>
         {{else}}
             <a class="level-item button is-info" href="/auth" title="Login with Discord">Login with Discord</a>
         {{/if}}
-    </div>
+    </div> --}}
 </nav>
 
 <div class="page-wrapper">
@@ -71,10 +72,16 @@
     ga('send', 'pageview');
 </script>
 <script type="text/javascript">
-        {{#if server}}
-        var server = '{{server.id}}';
-        {{/if}}
+    {{#if server}}
+    var server = '{{server.id}}';
+    {{/if}}
     var host = '{{config.site.host}}';
+    {{#if user}}
+    var user = {{{toJSON user}}}
+    {{/if}}
+    {{#if guilds}}
+    var guilds = {{{toJSON guilds}}}
+    {{/if}}
 </script>
 {{#each scripts}}
     <script type="text/javascript" src="{{this}}"></script>

@@ -5,8 +5,8 @@ let baseConfig = {
         serverPage: './serverListing/serverPage/index.jsx',
         serverPageInvite: './serverListing/serverPage/invite/index.jsx',
         dashboard: './dashboard/index.jsx',
-        account: './account/index.jsx',
         status: './status/index.jsx',
+        auth: './auth/index.jsx'
     },
     output: {
         path: path.join(__dirname, '../public/js/react'),

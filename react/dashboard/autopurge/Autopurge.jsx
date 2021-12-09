@@ -5,7 +5,6 @@ import Slider from 'rc-slider';
 import ModuleSettings from '../common/ModuleSettings.jsx';
 import Loader from '../common/Loader.jsx';
 import RichSelect from '../common/RichSelect.jsx';
-import FeatureLocker from '../common/FeatureLocker.jsx';
 import { addAutopurge, deleteAutopurge } from './service/autopurge.js';
 import '!style-loader!css-loader!rc-slider/assets/index.css';
 
@@ -91,60 +90,56 @@ export default class Autopurge extends ModuleSettings {
 
 		channelOptions = channelOptions.filter(c => !purges.find(p => p.channel === c.value));
 
-		return (
-			<FeatureLocker isLocked={!this.props.data.isPremium}>
-				<div id='module-autopurge' className='module-content module-settings'>
-					<h3 className='title is-4'>Auto Purge {this.ModuleToggle}</h3>
-					<div className='settings-content'>
-						<h3 className='title is-5'>About</h3>
-						<p>Auto purge will automatically purge a channel of up to 5,000 messages on a set interval.</p>
+		return (<div id='module-autopurge' className='module-content module-settings'>
+			<h3 className='title is-4'>Auto Purge {this.ModuleToggle}</h3>
+			<div className='settings-content'>
+				<h3 className='title is-5'>About</h3>
+				<p>Auto purge will automatically purge a channel of up to 5,000 messages on a set interval.</p>
+			</div>
+			<div className='settings-group'>
+				<div className='settings-content is-half'>
+					<h3 className='title is-5'>Add Auto Purge</h3>
+					<RichSelect
+						text='Channel'
+						defaultValue={this.state.selectedOption}
+						defaultOption='Select Channel'
+						options={channelOptions}
+						onChange={this.handleChannel} />
+					<div className='control'>
+						<label className='label' htmlFor='interval'>Select purge interval (hours)</label>
+						<input className='input' type='text' placeholder='8' value={this.state.interval} onChange={this.handleInterval} />
 					</div>
-					<div className='settings-group'>
-						<div className='settings-content is-half'>
-							<h3 className='title is-5'>Add Auto Purge</h3>
-							<RichSelect
-								text='Channel'
-								defaultValue={this.state.selectedOption}
-								defaultOption='Select Channel'
-								options={channelOptions}
-								onChange={this.handleChannel} />
-							<div className='control'>
-								<label className='label' htmlFor='interval'>Select purge interval (hours)</label>
-								<input className='input' type='text' placeholder='8' value={this.state.interval} onChange={this.handleInterval} />
-							</div>
-							<div className='control'>
-								<a className='button is-info' onClick={this.addPurge}>Add</a>
-							</div>
-						</div>
-						<div className='settings-content is-half'>
-							<h3 className='title is-5'>Auto Purge List</h3>
-							<table className="table is-striped">
-								<thead>
-									<tr>
-										<th>Channel</th>
-										<th>Purge Interval</th>
-										<th>Next Purge</th>
-										<th></th>
-									</tr>
-								</thead>
-								<tbody>
-									{purges.map(purge => {
-										const channel = this.state.channels.find(c => c.id === purge.channel);
-										return (
-											<tr key={purge._id}>
-												<td>{channel ? channel.name : 'Deleted Channel'}</td>
-												<td>{purge.interval} minutes</td>
-												<td>{moment(purge.nextPurge).format('YYYY-MM-DD HH:mm')}</td>
-												<td><a className='button is-danger' onClick={this.deletePurge.bind(this, purge, channel || { id: purge.channel })}>Remove</a></td>
-											</tr>
-										);
-									})}
-								</tbody>
-							</table>
-						</div>
+					<div className='control'>
+						<a className='button is-info' onClick={this.addPurge}>Add</a>
 					</div>
 				</div>
-			</FeatureLocker>
-		);
+				<div className='settings-content is-half'>
+					<h3 className='title is-5'>Auto Purge List</h3>
+					<table className="table is-striped">
+						<thead>
+							<tr>
+								<th>Channel</th>
+								<th>Purge Interval</th>
+								<th>Next Purge</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							{purges.map(purge => {
+								const channel = this.state.channels.find(c => c.id === purge.channel);
+								return (
+									<tr key={purge._id}>
+										<td>{channel ? channel.name : 'Deleted Channel'}</td>
+										<td>{purge.interval} minutes</td>
+										<td>{moment(purge.nextPurge).format('YYYY-MM-DD HH:mm')}</td>
+										<td><a className='button is-danger' onClick={this.deletePurge.bind(this, purge, channel || { id: purge.channel })}>Remove</a></td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>);
 	}
 }

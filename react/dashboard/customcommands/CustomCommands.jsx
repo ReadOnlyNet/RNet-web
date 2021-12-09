@@ -126,7 +126,6 @@ export default class CustomCommands extends ModuleSettings {
 				'Response',
 				'',
 			],
-			searchableColumnsIds: [0, 1],
 			rows: commands.map(c => ({
 				fields: [
 					{ value: !c || !c.command ? 'Invalid Command' : `${this.state.prefix}${c.command}` },
@@ -151,7 +150,7 @@ export default class CustomCommands extends ModuleSettings {
 			<div id='customcommands-list'>
 				{commands ? (
 					<div id='commandList'>
-						<PaginatedTable data={data} pageLimit={10} search />
+						<PaginatedTable data={data} pageLimit={10} />
 					</div>
 				) : (<h4>There are no commands.</h4>)}
 			</div>

@@ -169,7 +169,7 @@
 		padding: 1em;
 		margin: 1em 0;
 		clear: both;
-		/*vertical-align: top; */
+		vertical-align: top;
 		border-top: 0.5em solid $info;
 		border-radius: 5px;
 		&.is-flex
@@ -244,7 +244,7 @@
 		img
 			width: 20px;
 			height: 20px;
-			/*vertical-align: top; */
+			vertical-align: top;
 			margin-right: 4px;
 		span
 			line-height: 20px;
@@ -844,50 +844,3 @@ input[type=checkbox]:checked + label:before
 .hide-select-menu
 	.Select-menu-outer
 		display: none !important;
-
-
-.feature-locker-wrapper
-	position: relative
-
-	*
-		margin-bottom: 40px;
-
-	.feature-locker-panel
-		position: absolute
-		z-index: 99
-		background-color: rgba(43, 43, 43, 0.8)
-		display: flex
-		flex-direction: column
-		justify-content: center
-		align-items: center
-
-		.feature-locker-title
-			font-size: 2em
-			text-align: center
-			padding: 0px 20px
-			font-weight: bold
-
-		.feature-locker-description
-			text-align: center
-			width: 86%
-			font-size: 1.2em
-
-
-.react-error-wrapper
-	width: 100%
-	display: flex
-	flex-direction: column
-	align-items: center
-	padding: 100px 20px
-
-	*
-		margin-bottom: 10px
-
-	h1
-		font-size: 2em
-		font-weight: bold
-	h3
-		font-size: 1.2em
-
-	.fa-times-circle
-		color: #d53333

@@ -2,12 +2,10 @@
 import axios from 'axios';
 import React from 'react';
 import Loader from '../common/Loader.jsx';
-import Help from '../common/Help.jsx';
 import List from '../../serverListing/List.jsx';
 import SketchPicker from 'react-color';
 import Dropzone from 'react-dropzone';
 import RichMultiSelect from '../common/RichMultiSelect.jsx';
-import RichSelect from '../common/RichSelect.jsx';
 import { Creatable } from 'react-select';
 import '!style-loader!css-loader!rc-slider/assets/index.css';
 
@@ -22,8 +20,6 @@ export default class ServerListing extends React.Component {
 		isLoading: true,
 		isSaving: false,
 		justSaved: false,
-		selectedInviteChannel: {},
-		channels: [],
 	};
 
 	componentWillMount() {
@@ -34,22 +30,11 @@ export default class ServerListing extends React.Component {
 		try {
 			let response = await axios.get(`/api/server/${this.props.match.params.id}/serverlisting/`);
 
-			let defaultInviteChannel = {};
-
-			if (response.data.server.defaultInviteChannel) {
-				const channel = response.data.channels.find((c) => c.id === response.data.server.defaultInviteChannel);
-				if (channel) {
-					defaultInviteChannel = { label: channel.name, value: channel.id };
-				}
-			}
-
 			this.setState({
 				serverInfo: response.data.server,
 				originalServerInfo: response.data.server,
 				categories: response.data.categories,
 				isLoading: false,
-				channels: response.data.channels,
-				selectedInviteChannel: defaultInviteChannel,
 			});
 		} catch (e) {
 			this.setState({ error: 'Failed to get data, try again later' });
@@ -72,32 +57,6 @@ export default class ServerListing extends React.Component {
 		const name = target.name;
 
 		this.updateServerInfoState(name, value);
-	}
-
-	handleLinkChange = (event, type) => {
-		const value = event.target.value;
-		const links = this.state.serverInfo.links;
-
-		let newLinks;
-		if (!links) {
-			newLinks = [{ type, url: value }];
-		} else {
-			newLinks = links.slice(0).filter((l) => l.type !== type);
-
-			if (value) {
-				newLinks.push({ type, url: value });
-			}
-		}
-
-		this.updateServerInfoState('links', newLinks);
-	}
-
-	getLinkUrl = (type) => {
-		if (!this.state.serverInfo.links) return;
-
-		const link = this.state.serverInfo.links.find((l) => l.type === type) || {};
-
-		return link.url || '';
 	}
 
 	handleColorChange = (color) => {
@@ -139,15 +98,13 @@ export default class ServerListing extends React.Component {
 			const formData = new FormData();
 
 			formData.append('inviteUrl', this.state.serverInfo.inviteUrl);
-			// formData.append('borderColor', this.state.serverInfo.borderColor);
+			formData.append('borderColor', this.state.serverInfo.borderColor);
 			formData.append('backgroundImageFile', this.state.backgroundRegularFile);
 			formData.append('backgroundImageVerticalFile', this.state.backgroundFeaturedFile);
 			formData.append('description', this.state.serverInfo.description);
 			formData.append('listed', this.state.serverInfo.listed);
-			formData.append('defaultInviteChannel', this.state.selectedInviteChannel.value);
 			formData.append('tags', JSON.stringify(this.state.serverInfo.tags || []));
 			formData.append('categories', JSON.stringify(this.state.serverInfo.categories || []));
-			formData.append('links', JSON.stringify(this.state.serverInfo.links || []));
 
 			this.setState({ isSaving: true });
 			const url = `/api/server/${server}/serverlisting/update`;
@@ -212,10 +169,6 @@ export default class ServerListing extends React.Component {
 		this.updateServerInfoState('tags', tags);
 	}
 
-	handleChannel = (props, selectedInviteChannel) => {
-		this.setState({ selectedInviteChannel });
-	}
-
 	render() {
 		if (this.state.isLoading) {
 			return <Loader />;
@@ -262,15 +215,11 @@ export default class ServerListing extends React.Component {
 		let categories = this.state.categories.map((u) => ({ id: u, name: u }));
 		let defaultCategories = this.state.serverInfo.categories && this.state.serverInfo.categories.map((u) => ({ id: u, name: u }));
 
-		const channels = this.state.channels.filter(c => c.type === 0);
-		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
-
 		return (<div id='module-serverlisting' className='module-content module-settings'>
 			<h3 className='title is-4'>Server Listing {this.ModuleToggle}</h3>
 			<div className='settings-content'>
 				<h3 className='title is-5'>About</h3>
-				{/* <p>This panel controls and customizes wether and how this server is listed on our server list, which can be found <a href="/servers/">here</a></p> */}
-				<p>This panel controls and customizes whether and how this server is listed on our server list, which will be released shortly.</p>
+				<p>This panel controls and customizes wether and how this server is listed on our server list, which can be found <a href="/servers/">here</a></p>
 			</div>
 			<div className='settings-group'>
 				<div className='settings-content is-half'>
@@ -299,7 +248,7 @@ export default class ServerListing extends React.Component {
 						</p>
 					</div>
 					<p className='control'>
-						<label className="label">Invite URL<Help text={'If empty, RNet will attempt to create an invite for you. Make sure he has permissions to do so, as the bot will attempt to create an invite if this one ever expires or becomes invalid. This will ensure users will always be able to join your server.'} /></label>
+						<label className="label">Invite URL</label>
 						<input
 							type='text'
 							name='inviteUrl'
@@ -308,14 +257,7 @@ export default class ServerListing extends React.Component {
 							value={this.state.serverInfo.inviteUrl}
 						/>
 					</p>
-					<RichSelect
-						text='Default invite channel'
-						defaultValue={this.state.selectedInviteChannel}
-						defaultOption='Select Channel'
-						options={channelOptions}
-						onChange={this.handleChannel}
-						helpText={'If RNet needs to create a new invite, it will use this channel as the invite channel.'} />
-					{/* <p className='control'>
+					<p className='control'>
 						<label className='label'>Border Color</label>
 						<a className='button' onClick={this.toggleColorPicker}>Choose Color</a>
 						<span className='builder-color-preview' style={colorStyle} onClick={this.toggleColorPicker}></span>
@@ -325,7 +267,7 @@ export default class ServerListing extends React.Component {
 						<SketchPicker
 							color={this.state.serverInfo.borderColor}
 							onChangeComplete={this.handleColorChange} />
-					</div> : null} */}
+					</div> : null}
 					<RichMultiSelect
 						friendlyName='Categories'
 						text='Categories'
@@ -347,64 +289,20 @@ export default class ServerListing extends React.Component {
 							arrowRenderer={null}
 						/>
 					</div>
-					{ (this.state.serverInfo.premium || this.state.serverInfo.featured) &&
-						<label className='label'>
-							Background Image
-							<a onClick={this.deleteImageRegular} style={{ marginLeft: '10px' }}><i className="fas fa-trash-alt" /></a>
-						</label>
-					}
-					{ (this.state.serverInfo.premium || this.state.serverInfo.featured) &&
-						<Dropzone className='file-dropzone' onDrop={this.handleDropRegular} accept="image/*" multiple={false}>
-							Drag a file here or click to upload.
-						</Dropzone>
-					}
-					{ this.state.serverInfo.featured &&
-						<label className='label'>
-							Background Image (Vertical)
-							<a onClick={this.deleteImageVertical} style={{ marginLeft: '10px' }}><i className="fas fa-trash-alt" /></a>
-						</label>
-					}
-					{ this.state.serverInfo.featured &&
-						<Dropzone className='file-dropzone' onDrop={this.handleDropFeatured} accept="image/*" multiple={false}>
-							Drag a file here or click to upload.
-						</Dropzone>
-					}
-					<p className='control'>
-						<label className="label">Youtube URL</label>
-						<input
-							type='text'
-							className='input'
-							onChange={(event) => this.handleLinkChange(event, 'youtube')}
-							value={this.getLinkUrl('youtube')}
-						/>
-					</p>
-					<p className='control'>
-						<label className="label">Twitter URL</label>
-						<input
-							type='text'
-							className='input'
-							onChange={(event) => this.handleLinkChange(event, 'twitter')}
-							value={this.getLinkUrl('twitter')}
-						/>
-					</p>
-					<p className='control'>
-						<label className="label">Twitch URL</label>
-						<input
-							type='text'
-							className='input'
-							onChange={(event) => this.handleLinkChange(event, 'twitch')}
-							value={this.getLinkUrl('twitch')}
-						/>
-					</p>
-					<p className='control'>
-						<label className="label">Reddit URL</label>
-						<input
-							type='text'
-							className='input'
-							onChange={(event) => this.handleLinkChange(event, 'reddit')}
-							value={this.getLinkUrl('reddit')}
-						/>
-					</p>
+					<label className='label'>
+						Background Image
+						<a onClick={this.deleteImageRegular} style={{ marginLeft: '10px' }}><i className="fas fa-trash-alt" /></a>
+					</label>
+					<Dropzone className='file-dropzone' onDrop={this.handleDropRegular} accept="image/*" multiple={false}>
+						Drag a file here or click to upload.
+					</Dropzone>
+					<label className='label'>
+						Background Image (Vertical)
+						<a onClick={this.deleteImageVertical} style={{ marginLeft: '10px' }}><i className="fas fa-trash-alt" /></a>
+					</label>
+					<Dropzone className='file-dropzone' onDrop={this.handleDropFeatured} accept="image/*" multiple={false}>
+						Drag a file here or click to upload.
+					</Dropzone>
 					<div className="columns" style={{ marginTop: '20px' }}>
 						<div className="column">
 							{saveButton}

@@ -47,8 +47,6 @@ class Controller {
 			this.apiRequest(token, '/users/@me'),
 			this.apiRequest(token, '/users/@me/guilds'),
 		]).then(([user, guilds]) => {
-			req.session.allGuilds = guilds;
-
 			guilds = guilds.filter(g => (g.owner === true || !!(g.permissions & perms.manageServer) || !!(g.permissions & perms.administrator)))
 				.map(g => {
 					if (!req.params.id || g.id !== req.params.id) return g;
@@ -72,7 +70,7 @@ class Controller {
 			req.session.guilds = res.locals.guilds = guilds;
 			req.session.lastAuth = Date.now();
 
-			return next ? next() : true;
+			return next();
 		}).catch(err => {
 			if (err === 401) {
 				req.session.destroy();
@@ -80,7 +78,7 @@ class Controller {
 			}
 
 			res.locals.error = err;
-			return next ? next() : true;
+			return next();
 		});
 	}
 

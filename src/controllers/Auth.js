@@ -30,7 +30,6 @@ class Auth extends Controller {
 				method: 'use',
 				uri: [
 					'/',
-					'/account',
 					'/commands/',
 					'/partner',
 					'/manage/:id',
@@ -47,6 +46,11 @@ class Auth extends Controller {
 				method: 'get',
 				uri: '/auth',
 				handler: this.auth.bind(this),
+			},
+			api: {
+				method: 'get',
+				uri: '/api/auth',
+				handler: this.api.bind(this),
 			},
 			logout: {
 				method: 'get',
@@ -87,6 +91,7 @@ class Auth extends Controller {
 			}
 		}
 
+		res.locals.scripts.push('/js/react/auth.js');
 		res.locals.config = config;
 
 		if (!req.session || !req.session.auth || res.locals.user) return next();
@@ -122,6 +127,15 @@ class Auth extends Controller {
 		const token = req.session.auth.access_token;
 
 		return this.fetchUser(token, req, res, next);
+	}
+
+	api(bot, req, res) {
+		if (!req.session || !req.session.auth) return next();
+		if (!req.session.user) return next();
+		return res.send({
+			user: req.session.user,
+			guilds: req.session.guilds,
+		});
 	}
 
 	beforeStaging(bot, req, res, next) {
@@ -194,7 +208,7 @@ class Auth extends Controller {
 				client_id: config.client.id,
 				client_secret: config.client.secret,
 			})
-			.end(async (err, r) => {
+			.end((err, r) => {
 				if (err) {
 					logger.error(err);
 					return res.redirect('/');
@@ -215,11 +229,7 @@ class Auth extends Controller {
 					}
 				}
 
-				const token = req.session.auth.access_token;
-
-				await this.fetchUser(token, req, res);
-
-				return res.redirect('/account');
+				return res.redirect('/');
 			});
 	}
 

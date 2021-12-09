@@ -101,18 +101,6 @@
     }
     background-color: darken($danger, 10%) !important;
   }
-  &.type-dark {
-    &.place-top:after {
-      border-top-color: darken(gray, 10%) !important;
-    }
-    &.place-right:after {
-      border-right-color: darken(gray, 10%) !important;
-    }
-    &.place-left:after {
-      border-left-color: darken(gray, 10%) !important;
-    }
-    background-color: darken(gray, 10%) !important;
-  }
 }
 .text-highlight {
   color: $link-hover;
@@ -123,7 +111,7 @@
 .status-warning {
   color: $warning;
 }
-.status-error {
+.status-danger {
   color: $danger;
 }
 @keyframes glow {
@@ -143,11 +131,8 @@
 .bg-warning {
   background-color: darken($warning, 40%);
 }
-.bg-error {
+.bg-danger {
   background-color: $danger;
-}
-.bg-ipc-timeout {
-  background-color: gray;
 }
 .fire {
   text-align: right;

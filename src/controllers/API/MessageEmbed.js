@@ -3,7 +3,6 @@
 const Controller = require('../../core/Controller');
 const logger = require('../../core/logger');
 const { models } = require('../../core/models');
-const config = require('../../core/config');
 
 class MessageEmbed extends Controller {
 	constructor(bot) {
@@ -39,15 +38,6 @@ class MessageEmbed extends Controller {
 			return res.status(400).send('Missing required message.');
 		}
 
-		const guildConfig = await config.guilds.fetch(req.params.id);
-		if (!guildConfig) {
-			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
-		}
-
 		const { snowClient: client } = bot;
 		let { name, channel, embed } = req.body.message;
 
@@ -73,15 +63,6 @@ class MessageEmbed extends Controller {
 	async delete(bot, req, res) {
 		if (!req.body.message) {
 			return res.status(400).send('Missing required message.');
-		}
-
-		const guildConfig = await config.guilds.fetch(req.params.id);
-		if (!guildConfig) {
-			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
 		}
 
 		const { snowClient: client } = bot;
@@ -120,15 +101,6 @@ class MessageEmbed extends Controller {
 
 		if (!req.body.message || !req.body.message._id) {
 			return res.status(400).send('Invalid message.');
-		}
-
-		const guildConfig = await config.guilds.fetch(req.params.id);
-		if (!guildConfig) {
-			return res.status(500).send('Something went wrong.');
-		}
-
-		if (!guildConfig.isPremium) {
-			return res.status(500).send('Premium verification failed');
 		}
 
 		const message = req.body.message;

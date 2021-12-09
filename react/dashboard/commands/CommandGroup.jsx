@@ -147,8 +147,8 @@ export default class CommandGroup extends React.Component {
 
 		return (<div id={'commands-' + group.name} className={className}>
 			<div className='controls command-group-controls'>
-				<button className='button is-success' onClick={this.openEnable}>Enable All {group.name} Commands</button>
-				<button className='button is-danger' onClick={this.openDisable}>Disable All {group.name} Commands</button>
+				<button className='button is-success' onClick={this.openEnable}>Enable All {group.name}</button>
+				<button className='button is-danger' onClick={this.openDisable}>Disable All {group.name}</button>
 				<a className='control command-settings' onClick={this.openSettings}>
 					<span className='icon is-link'>
 						<i className='fa fa-cog'></i>

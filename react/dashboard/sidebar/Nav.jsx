@@ -71,17 +71,6 @@ export default class Nav extends React.Component {
 					enabled={m.enabled}
 					onClick={this.toggleNavigation} />);
 
-		let premiumModules = this.props.modules
-			.filter(m => !m.adminEnabled && m.hasPartial && m.hide)
-			.map(m =>
-				<NavItem
-					key={m.name}
-					link={`/manage/${params.id}/${m.partialId}`}
-					icon='fas fa-lock-alt'
-					label={m.friendlyName}
-					enabled={false}
-					onClick={this.toggleNavigation} />);
-
 		let guildIcon = server.iconURL ? (
 			<div className='guild-icon'>
 				<a href={`/manage/${params.id}`}>
@@ -93,7 +82,7 @@ export default class Nav extends React.Component {
 				<a href={`/manage/${params.id}`} data-initials={server.initials}>
 				</a>
 			</div>
-		);
+		)
 
 		return (<div className='column nav-sidebar'>
 			<aside className='menu'>
@@ -120,12 +109,15 @@ export default class Nav extends React.Component {
 						<NavItem link={`/manage/${params.id}/commands`} icon='far fa-terminal' label='Commands' classes='tab-control' onClick={this.toggleNavigation} />
 						<NavItem link={`/manage/${params.id}/music-queue`} icon='fas fa-music' label='Music Queue' classes='queue-control' onClick={this.toggleNavigation} />
 						<NavItem link={`/upgrade`} staticLink={true} icon='fas fa-arrow-circle-up' label={premiumLabel} classes='tab-control upgrade' onClick={this.toggleNavigation} />
-						<p className='menu-label'>Server Listing</p>
-						<NavItem link={`/manage/${params.id}/server-listing`} icon='fas fa-list' label='Server Info' classes='tab-control' onClick={this.toggleNavigation} />
+						{ enableCaesar &&
+							<p className='menu-label'>Server Listing</p>
+						}
+						{ enableCaesar &&
+							<NavItem link={`/manage/${params.id}/server-listing`} icon='fas fa-list' label='Server Info' classes='tab-control' onClick={this.toggleNavigation} />
+						}
 						<p className='menu-label'>Module Settings</p>
 						{enabledModules}
 						{disabledModules}
-						{premiumModules}
 						<p className='menu-label'>Other</p>
 						<NavItem link={`/manage/${params.id}/logs`} icon='far fa-cogs' label='Logs' classes='tab-control' onClick={this.toggleNavigation} />
 						{/* <NavItem link={`/manage/${params.id}/modlogs`} icon='fa fa-cogs' label='Moderator Logs' classes='tab-control' onClick={this.toggleNavigation} />

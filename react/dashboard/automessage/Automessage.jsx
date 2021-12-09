@@ -110,7 +110,6 @@ export default class Automessage extends ModuleSettings {
 			<div className='settings-content'>
 				<h3 className='title is-5'>About</h3>
 				<p>Auto message will automatically post a message to a channel on a set interval.</p>
-				<p><strong>Limits for free users:</strong> Interval between 1 hour and 3 days, one auto message per server.</p>
 			</div>
 			<div className='settings-group'>
 				<div className='settings-content is-half'>

@@ -40,39 +40,7 @@ class ServerList extends Controller {
 				uri: '/serverlisting/server/:id/inviteUrl/:token',
 				handler: this.getInviteUrl.bind(this),
 			},
-			search: {
-				method: 'get',
-				uri: '/serverlisting/search/:query',
-				handler: this.search.bind(this),
-			},
 		};
-	}
-
-	async search(bot, req, res) {
-		try {
-			const query = req.params.query;
-			const skip = parseInt(req.query.skip) || 0;
-			const limit = 20;
-
-			const coll = db.collection('serverlist_store');
-
-			const result = await coll.find({
-				$text:
-				{
-					$search: query,
-					$caseSensitive: false,
-				},
-			})
-			.project({ score: { $meta: 'textScore' } })
-			.sort({ score: { $meta: 'textScore' } })
-			.skip(skip)
-			.limit(limit)
-			.toArray();
-
-			res.send({ servers: result });
-		} catch (err) {
-			res.status(500).send(err.message);
-		}
 	}
 
 	setCookie(res, indexedDoc, type, seed) {
@@ -163,15 +131,13 @@ class ServerList extends Controller {
 		const pageId = pageIndexes[page];
 
 		const queryResult = await coll.aggregate(
-			[
-				{ $match: { _id: new ObjectId(indexedDoc._id) } },
-				{
-					$project: {
-						_id: 1,
-						ids: { $arrayElemAt: ['$pages', pageId] },
-					},
-				},
-			]).next();
+		[
+			{ $match: { _id: new ObjectId(indexedDoc._id) } },
+			{ $project: {
+				_id: 1,
+				ids: { $arrayElemAt: ['$pages', pageId] },
+			} },
+		]).next();
 
 		return {
 			indexedDoc,
@@ -189,7 +155,7 @@ class ServerList extends Controller {
 
 		try {
 			const cookie = req.cookies[`serverlisting_${type}`] || {};
-			const seed = req.query.seed || cookie.seed || 10777700 * (Math.random() * Math.random());
+			const seed = cookie.seed || 10777700 * (Math.random() * Math.random());
 
 			const rand = seedrandom(seed);
 			const shuffle = (array) => this.shuffleArr(array, rand);
@@ -201,7 +167,7 @@ class ServerList extends Controller {
 			this.setCookie(res, ids.indexedDoc, type, seed);
 
 			res.send({
-				servers: shuffle(await coll.find({ listed: true, id: { $in: Array.from(ids.ids) } }, ).toArray()),
+				servers: shuffle(await coll.find({ listed: true, id: { $in: Array.from(ids.ids) } }).toArray()),
 				pageCount: ids.indexedDoc.pageCount,
 			});
 		} catch (e) {
@@ -273,7 +239,7 @@ class ServerList extends Controller {
 			var bulk = db.collection('serverlist_invitestats').initializeOrderedBulkOp();
 
 			bulk.find({ id: id })
-				.updateOne({ $inc: { inviteTotal: 1 } });
+			.updateOne({ $inc: { inviteTotal: 1 } });
 
 			// The trick here is: We try to increment the invite counter. It will fail
 			// if the document for "today" doesn't exist and will carry on the bulk.

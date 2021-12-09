@@ -1,11 +1,6 @@
-{{#if enableCaesar}}
-	<script>const enableCaesar = true</script>
-{{else}}
-	<script>const enableCaesar = false</script>
-{{/if}}
 <div id="server" class="page-server">
 	<div class="container-fluid">
-		<div id="dashboard-mount"></div>
+		<div id="admin-mount"></div>
 	</div>
 </div>
 
@@ -13,7 +8,6 @@
 	<div class="notification success is-success is-hidden"><p></p></div>
 	<div class="notification error is-danger is-hidden"><p></p></div>
 </div>
-
-<script type="text/javascript">
+{{!-- <script type="text/javascript">
 	var config = {{{toJSON dashboardConfig}}}
-</script>
+</script> --}}

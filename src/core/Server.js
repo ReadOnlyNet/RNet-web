@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 'use strict';
 
 const path = require('path');
@@ -49,7 +48,7 @@ class Server {
 	 * Start the server module
 	 * @param {Eris} client The eris client instance
 	 */
-	async start(client) {
+	start(client) {
 		let app = this.app = express();
 
 		this.client = client;
@@ -214,21 +213,16 @@ class Server {
 		// 	stylesheets: ['app'],
 		// };
 
-
-		const controllers = [];
 		// load controllers
-		await utils.readdirRecursive(config.paths.controllers).then(files => {
+		utils.readdirRecursive(config.paths.controllers).then(files => {
 			files.forEach(file => {
 				let Controller = require(file);
 				if (!Controller || typeof Controller !== 'function') {
 					return;
 				}
-				controllers.push(new Controller(this.client));
+				return this.createRoutes(new Controller(this.client));
 			});
 		});
-
-		controllers.forEach((c) => this.registerMiddlewares(c));
-		controllers.forEach((c) => this.createRoutes(c));
 
 		// create server
 		http.createServer(app).listen(app.get('port'), () => {
@@ -268,29 +262,6 @@ class Server {
 		return Promise.resolve();
 	}
 
-	registerMiddlewares(routes) {
-		for (let o in routes) {
-			let route = routes[o];
-			if (route.method !== 'use') {
-				continue;
-			}
-
-			if (!(route.uri instanceof Array)) {
-				logger.info(`Registering middleware for ${route.uri}`);
-
-				this.app[route.method](route.uri, route.handler.bind(route, this.client));
-
-				continue;
-			}
-
-			for (let uri of route.uri) {
-				logger.info(`Registering middleware for ${uri}`);
-
-				// create the express route
-				this.app[route.method](uri, route.handler.bind(route, this.client));
-			}
-		}
-	}
 	/**
 	 * Create routes
 	 * @param  {Array} routes Array of routes returned by the controller
@@ -299,12 +270,10 @@ class Server {
 		// iterate over the routes defined by the controller
 		for (let o in routes) {
 			let route = routes[o];
-			if (route.method === 'use') {
-				continue;
-			}
 
 			if (!(route.uri instanceof Array)) {
-				logger.info(`Creating route for ${route.uri}`);
+				if (route.method === 'use') logger.info(`Registering middleware for ${route.uri}`);
+				else logger.info(`Creating route for ${route.uri}`);
 
 				if (route.upload) {
 					this.app[route.method](route.uri, route.handler.bind(route, this.client, this.upload));
@@ -318,7 +287,8 @@ class Server {
 			}
 
 			for (let uri of route.uri) {
-				logger.info(`Creating route for ${uri}`);
+				if (route.method === 'use') logger.info(`Registering middleware for ${uri}`);
+				else logger.info(`Creating route for ${uri}`);
 
 				// create the express route
 				this.app[route.method](uri, route.handler.bind(route, this.client));

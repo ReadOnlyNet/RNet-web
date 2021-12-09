@@ -424,6 +424,8 @@ class Server extends Controller {
 			},
 		};
 
+		res.locals.enableCaesar = process.env.ENABLE_SERVER_LISTING;
+
 		return res.render('server', { layout: 'server' });
 	}
 

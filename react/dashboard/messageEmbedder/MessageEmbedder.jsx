@@ -2,7 +2,6 @@ import React from 'react';
 import axios from 'axios';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import Loader from '../common/Loader.jsx';
-import FeatureLocker from '../common/FeatureLocker.jsx';
 import MessageEmbed from './MessageEmbed.jsx';
 import ModuleSettings from '../common/ModuleSettings.jsx';
 
@@ -88,67 +87,65 @@ export default class MessageEmbedder extends ModuleSettings {
 		const selectedMessage = mappedMessages[this.state.index - 1];
 
 		return (
-			<FeatureLocker isLocked={!this.props.data.isPremium}>
-				<div id='module-messageembedder' className='module-content module-settings'>
-					<h3 className='title is-4'>Message Embedder {this.ModuleToggle}</h3>
-					<Tabs className='cc-tabs' selectedTabClassName='is-active' selectedTabPanelClassName='is-active' onSelect={this.selectEmbed}>
-						<div className='cc-list'>
-							<div className={`mobile ${this.state.isOpen ? 'opened' : ''} ${this.state.index === 0 ? 'default' : ''}`}>
-								<ul className='dropdown'>
-									{this.state.index === 0 ? (
-										<li><span className='embed-list-name'><strong>+</strong> New Embed</span></li>
-											) : (
-										<li><span className='embed-list-name'>
-											{selectedMessage.name}
-											</span>
-											<span className='embed-list-channel'>
-												#{(selectedMessage.channel && selectedMessage.channel.name) || 'deleted-channel'}
-											</span>
-										</li>
-									)}
-								</ul>
-								<div className='caret' onClick={() => this.toggleOpened()}></div>
-							</div>
-							<TabList>
-								<Tab className='embed-list-new'>
-									<span className='embed-list-name'>
-										<strong>+</strong> New Embed
-									</span>
-									{/* <button className='button is-success'>New Embed</button> */}
-								</Tab>
-								{mappedMessages.map(m => (
-									<Tab key={m._id}>
-										<span className='embed-list-name'>
-											{m.name}
+			<div id='module-messageembedder' className='module-content module-settings'>
+				<h3 className='title is-4'>Message Embedder {this.ModuleToggle}</h3>
+				<Tabs className='cc-tabs' selectedTabClassName='is-active' selectedTabPanelClassName='is-active' onSelect={this.selectEmbed}>
+					<div className='cc-list'>
+						<div className={`mobile ${this.state.isOpen ? 'opened' : ''} ${this.state.index === 0 ? 'default' : ''}`}>
+							<ul className='dropdown'>
+								{this.state.index === 0 ? (
+									<li><span className='embed-list-name'><strong>+</strong> New Embed</span></li>
+										) : (
+									<li><span className='embed-list-name'>
+										{selectedMessage.name}
 										</span>
 										<span className='embed-list-channel'>
-											#{(m.channel && m.channel.name) || 'deleted-channel'}
+											#{(selectedMessage.channel && selectedMessage.channel.name) || 'deleted-channel'}
 										</span>
-									</Tab>
-								))}
-							</TabList>
+									</li>
+								)}
+							</ul>
+							<div className='caret' onClick={() => this.toggleOpened()}></div>
 						</div>
-						<div className='cc-panel'>
-							<TabPanel>
+						<TabList>
+							<Tab className='embed-list-new'>
+								<span className='embed-list-name'>
+									<strong>+</strong> New Embed
+								</span>
+                                {/* <button className='button is-success'>New Embed</button> */}
+							</Tab>
+                            {mappedMessages.map(m => (
+								<Tab key={m._id}>
+									<span className='embed-list-name'>
+										{m.name}
+									</span>
+									<span className='embed-list-channel'>
+										#{(m.channel && m.channel.name) || 'deleted-channel'}
+									</span>
+								</Tab>
+                            ))}
+						</TabList>
+					</div>
+					<div className='cc-panel'>
+						<TabPanel>
+							<MessageEmbed {...this.props}
+								channels={channels}
+								roles={roles}
+								onSave={this.onSave}
+								onCancel={this.onCancel} />
+						</TabPanel>
+						{mappedMessages.map(m => (
+							<TabPanel key={m._id}>
 								<MessageEmbed {...this.props}
 									channels={channels}
-									roles={roles}
+									message={m}
 									onSave={this.onSave}
-									onCancel={this.onCancel} />
+									onDelete={this.onDelete} />
 							</TabPanel>
-							{mappedMessages.map(m => (
-								<TabPanel key={m._id}>
-									<MessageEmbed {...this.props}
-										channels={channels}
-										message={m}
-										onSave={this.onSave}
-										onDelete={this.onDelete} />
-								</TabPanel>
-							))}
-						</div>
-					</Tabs>
-				</div>
-			</FeatureLocker>
-		);
+						))}
+					</div>
+				</Tabs>
+			</div>
+		)
 	}
 }

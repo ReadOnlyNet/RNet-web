@@ -132,7 +132,6 @@ export default class AutoResponder extends ModuleSettings {
 				'Response',
 				'',
 			],
-			searchableColumnsIds: [0, 1],
 			rows: commands.map(c => ({
 				fields: [
 					{ value: !c || !c.command ? 'Invalid Response' : `${c.command}` },
@@ -155,7 +154,7 @@ export default class AutoResponder extends ModuleSettings {
 			<div id='customcommands-list'>
 				{commands ? (
 					<div id='responseList'>
-						<PaginatedTable data={data} pageLimit={10} search />
+						<PaginatedTable data={data} pageLimit={10} />
 					</div>
 				) : (<h4>There are no auto responses.</h4>)}
 			</div>

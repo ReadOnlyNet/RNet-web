@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React from 'react';
 import Server from './Server.jsx';
 import axios from 'axios';
@@ -117,8 +116,7 @@ export default class Status extends React.Component {
                 <p>Legend:</p>
                 <div className='cluster bg-success'>Operational</div>
                 <div className='cluster bg-warning'>Partial Outage</div>
-                <div className='cluster bg-error'>Major Outage</div>
-                <div className='cluster bg-ipc-timeout'>IPC Timeout</div>
+                <div className='cluster bg-danger'>Major Outage</div>
               </div>
               <p><strong>Hover over a cluster for more information.</strong></p>
             </div>

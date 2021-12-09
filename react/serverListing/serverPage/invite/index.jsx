@@ -16,16 +16,6 @@ class ServerPageInvite extends React.Component {
         _recaptchaCallback = this.recaptchaSuccess;
     }
 
-    componentDidMount() {
-        const script = document.createElement('script');
-
-        script.src = '//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=dynobotnet';
-        script.id = '_carbonads_js';
-        script.async = true;
-
-        document.getElementById('carbon-wrapper').appendChild(script);
-    }
-
     async componentWillMount() {
         try {
             let server = await axios.get(`/serverlisting/server/${guildId}`);
@@ -51,26 +41,12 @@ class ServerPageInvite extends React.Component {
 
     render() {
         return (
-            <div>
-                <div className="hero">
-                    <div className="container">
-                        <div className="columns">
-                            <div className="column is-12">
-                                <div className="carbon-wrapper" id='carbon-wrapper'>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className='invite-content-wrapper'>
-                    <div
-                        className="g-recaptcha"
-                        data-sitekey={recaptchaKey}
-                        data-callback="recaptchaCallback"
-                        data-theme='dark'
-                    >
-                    </div>
-                </div>
+            <div
+                className="g-recaptcha"
+                data-sitekey={recaptchaKey}
+                data-callback="recaptchaCallback"
+                data-theme='dark'
+            >
             </div>
         );
     }

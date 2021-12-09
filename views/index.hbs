@@ -10,7 +10,7 @@
 				<div class="column is-6">
 					{{>carbon}}
 					<div class="getting-started">
-						{{#if user}}<a class="button is-info" href="/account" title="Manage a Server">Manage a Server</a>{{/if}}
+						{{#if user}}<a class="button is-info" href="/manage" title="Manage a Server">Manage a Server</a>{{/if}}
 						{{#unless user}}<a class="button is-info" href="/auth" title="Login with Discord">Login with Discord</a>{{/unless}}
 						<a class="button is-info" href="/discord?code=eYQnVv9" title="Join us on Discord">Join us on Discord</a>
 					</div>
@@ -51,7 +51,7 @@
 			<h3>Getting Started</h3>
 			<div class="getting-started">
 				<p>To get started with RNet,{{#unless user}} login with discord and{{/unless}} select the server that you would like to setup.</p>
-				{{#if user}}<a class="button is-info" href="/account" title="Manage a Server">Manage a Server</a>{{/if}}
+				{{#if user}}<a class="button is-info" href="/manage" title="Manage a Server">Manage a Server</a>{{/if}}
 				{{#unless user}}<a class="button is-info" href="/auth" title="Login with Discord">Login with Discord</a>{{/unless}}
 				{{!-- <p><strong>Note:</strong> To be able to setup a server, you need the <strong>manage server</strong> permission.</p> --}}
 			</div>

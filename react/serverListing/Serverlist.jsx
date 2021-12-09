@@ -1,17 +1,18 @@
 /* globals document */
-/* eslint-disable no-invalid-this */
 
 import React from 'react';
 import Cookies from 'js-cookie';
 import List from './List.jsx'; // eslint-disable-line no-unused-vars
 import axios from 'axios';
 export default class Serverlist extends React.Component {
-    state = {
-        fetching: false,
-        error: '',
-        isSearching: false,
-        searchQuery: '',
-    };
+    constructor(props) {
+        super(props);
+        this.state = {
+            fetching: false,
+            servers: { premium: [], regular: [], featured: [] },
+            error: '',
+        };
+    }
 
     componentDidMount() {
         // const script = document.getElementById('_carbonads_js').innerHTML;
@@ -26,7 +27,25 @@ export default class Serverlist extends React.Component {
     }
 
     async componentWillMount() {
-        setInterval(this.refreshCookies, 25 * 60 * 1000);
+        try {
+            let serversPremium = axios.get('/serverlisting/?type=premium');
+            let serversRegular = axios.get('/serverlisting/?type=regular');
+            let serversFeatured = axios.get('/serverlisting/?type=featured');
+
+            [serversPremium, serversRegular, serversFeatured] = await Promise.all([serversPremium, serversRegular, serversFeatured]);
+
+            this.setState({
+                servers: {
+                    premium: serversPremium.data.servers,
+                    regular: serversRegular.data.servers,
+                    featured: serversFeatured.data.servers,
+                },
+            });
+
+            setInterval(this.refreshCookies, 25 * 60 * 1000);
+        } catch (e) {
+            this.setState({ error: 'Failed to load servers, try again later' });
+        }
     }
 
     refreshCookies() {
@@ -36,68 +55,26 @@ export default class Serverlist extends React.Component {
         Cookies.set('serverlisting_featured', Cookies.get('serverlisting_featured'), { expires: expireIn });
     }
 
-    search = async (query) => {
-        if (this.searchTimeoutId) {
-            clearTimeout(this.searchTimeoutId);
-        }
-
-        // trim & remove multiple spaces, tabs, newlines
-        query = query.trim().replace(/\s\s+/g, ' ');
-
-        if (!query) {
-            this.setState({
-                isSearching: false,
-                searchQuery: '',
-            });
-            return;
-        }
-
-        this.searchTimeoutId = setTimeout(() => {
-            this.setState({
-                isSearching: true,
-                searchQuery: query,
-            });
-            this.searchTimeoutId = undefined;
-        }, 800);
-    }
-
-    getPage = async (number, type, seedOverride) => {
+    async getPage(number, type) {
         try {
-            let servers;
-
-            if (type !== 'search') {
-                servers = await axios.get(`/serverlisting/?type=${type}&page=${number}${(seedOverride) ? `&seed=${seedOverride}` : ''}`);
-            } else {
-                servers = await axios.get(`/serverlisting/search/${this.state.searchQuery}?skip=${number * 20}`);
-            }
+            const servers = await axios.get(`/serverlisting/?type=${type}&page=${number}`);
 
             return {
                 servers: servers.data.servers,
-                pageCount: servers.data.pageCount || 0,
+                pageCount: servers.data.pageCount,
             };
         } catch (e) {
             this.setState({ error: 'Failed to load servers, try again later' });
         }
     }
 
-    handleSearchInput = (event) => {
-		const target = event.target;
-		const value = target.value;
-
-        this.search(value);
-	}
-
     render() {
-        let regularList, premiumList, featuredList, searchList;
+        let regularList, premiumList, featuredList;
 
         if (this.state.error === '') {
-            if (this.state.isSearching) {
-                searchList = <List search={true} searchQuery={this.state.searchQuery} getPage={this.getPage} pagination paginationInfiniteScroll />;
-            } else {
-                featuredList = <List featured={true} getPage={this.getPage} pagination paginationCircles />;
-                premiumList = <List premium={true} getPage={this.getPage} pagination paginationCircles />;
-                regularList = <List getPage={this.getPage} pagination />;
-            }
+            featuredList = <List featured={true} getPage={this.getPage} pagination paginationCircles />;
+            premiumList = <List premium={true} getPage={this.getPage} pagination paginationCircles />;
+            regularList = <List getPage={this.getPage} pagination />;
         }
         return (
             <div>
@@ -107,16 +84,20 @@ export default class Serverlist extends React.Component {
                             <div className="column is-half">
                                 <h1 className="title">Discord <span style={{ color: '#0072bc' }}>Servers</span></h1>
                                 <p className="hero-description">
-                                    A quality, well-made listing service that offers users a completely fair and unbiased list of servers for you to explore and join!
+                                    A quality, non-biased and truly fair listing with quality servers for all types of people. No bumps, no endless pages of paid servers, just quality discord servers for you to explore!
                                 </p>
                                 <p className='control'>
-                                    <input
-                                        type='text'
-                                        className='input'
-                                        placeholder='Search...'
-                                        onChange={this.handleSearchInput}
-                                    />
-                                </p>
+                                <input
+                                    type='text'
+                                    name='inviteUrl'
+                                    className='input'
+                                    placeholder='Search... (this doesnt work yet ok dont yell at gin)'
+                                />
+                                 </p>
+                            </div>
+                            <div className="column is-half">
+                                <div className="carbon-wrapper" id='carbon-wrapper'>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -124,22 +105,13 @@ export default class Serverlist extends React.Component {
                 <div className="container serverlist">
                     <div className="main-wrapper">
                         <p>{this.state.error}</p>
-                        {searchList &&
-                            <div className="list-wrapper standard-list-wrapper">
-                                {searchList}
-                            </div>
-                        }
-                        { featuredList &&
-                            <div className="list-wrapper sponsored-list-wrapper">
-                                {featuredList}
-                            </div>
-                        }
-                        { (premiumList || regularList) &&
-                            <div className="list-wrapper standard-list-wrapper">
-                                {premiumList || false}
-                                {regularList || false}
-                            </div>
-                        }
+                        <div className="list-wrapper sponsored-list-wrapper">
+                            {featuredList}
+                        </div>
+                        <div className="list-wrapper standard-list-wrapper">
+                            {premiumList}
+                            {regularList}
+                        </div>
                     </div>
                 </div>
             </div>
