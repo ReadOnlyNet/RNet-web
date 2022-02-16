@@ -15,7 +15,7 @@ export default class RichCheckbox extends React.Component {
         this.setState({ isEnabled: this.props.defaultValue });
 	}
 
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
 		if (props.defaultValue === this.state.isEnabled) {
 			return;
 		}

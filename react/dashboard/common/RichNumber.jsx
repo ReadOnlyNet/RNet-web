@@ -11,7 +11,7 @@ export default class RichNumber extends React.Component {
 		this.setState({ value: this.props.defaultValue });
 	}
 
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
 		if (props.defaultValue === this.state.value) {
 			return;
 		}

@@ -27,7 +27,7 @@ export default class AddSelectItem extends React.Component {
 		}
 	}
 
-    componentWillReceiveProps(props) {
+    UNSAFE_componentWillReceiveProps(props) {
 		if (props.value === this.state.value) {
 			return;
 		}

@@ -3,7 +3,7 @@
 const superagent = require('superagent');
 const Controller = require('../../core/Controller');
 const { models } = require('../../core/models');
-const logger = require('../../core/logger');
+const logger = require('../../core/logger').get('Associates');
 
 class Associates extends Controller {
 	constructor(bot) {

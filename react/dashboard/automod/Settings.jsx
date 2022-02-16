@@ -21,7 +21,7 @@ export default class SettingsTab extends React.Component {
 		this.updateStateWithProps(this.props);
 	}
 
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
 		this.updateStateWithProps(props);
 	}
 
@@ -79,14 +79,15 @@ export default class SettingsTab extends React.Component {
 		const { automod } = this.state;
 		const module = this.props.data.module;
 		const roles = this.state.roles;
-		const channels = this.state.channels.filter(c => c.type === 0);
+		const channels = this.state.channels.filter(c => (c.type === 0 || c.type === 4));
 		const defaultChannel = channels.find(c => c.id === this.state.channel);
-		const channelOptions = channels.map(c => ({ value: c.id, label: c.name }));
-		const ignoredChannels = channels.filter(c => c.type === 0 && this.state.ignoredChannels.find(i => i.id === c.id));
+		const channelOptions = channels.filter(c => c.type === 0).map(c => ({ value: c.id, label: c.name }));
+        const ignoredChannelOptions = channels.map(c => ({ value: c.id, label: c.name }));
+		const ignoredChannels = channels.filter(c => this.state.ignoredChannels.find(i => i.id === c.id));
 		const ignoredRoles = roles.filter(r => this.state.ignoredRoles.find(i => i.id === r.id));
 		const roleOptions = roles.map(r => ({ value: r.id, label: r.name }));
 
-		return (<div id="automod-settings">
+		return (<div id="automod-settings" className='settings-panel'>
 			<div className='settings-group'>
 				<div className='settings-content is-half is-flex'>
 					{/* <h3 className='title is-5'>Settings</h3> */}
@@ -188,6 +189,13 @@ export default class SettingsTab extends React.Component {
 					multi={true}
 					value={this.getDefaultValue('emojisEnabled')} />
 				<SettingSelector module={module} {...this.props}
+					id='select-spoilersEnabled'
+					setting='spoilersEnabled'
+					label='Spoilers'
+					multi={true}
+					helpText='Delete text or image spoilers.'
+					value={this.getDefaultValue('spoilersEnabled')} />
+				<SettingSelector module={module} {...this.props}
 					id='select-selfbotEnabled'
 					setting='selfbotEnabled'
 					label='Selfbot Detection'
@@ -242,7 +250,7 @@ export default class SettingsTab extends React.Component {
 						text='Ignored Channels'
 						defaultValue={ignoredChannels}
 						defaultOption='Select Channel'
-						options={channelOptions}
+						options={ignoredChannelOptions}
 						onChange={this.handleIgnoredChannels} />
 				</div>
 				<div className='settings-content is-half'>

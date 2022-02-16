@@ -6,7 +6,7 @@
 
 .cc-list
 	width: 25%;
-	background: $new-background;
+	background: linear-gradient(150.63deg, #232E42 0%, #1B2538 100%);
 	border-radius: 6px;
 	padding: 1em;
 	margin-right: 1em;
@@ -18,6 +18,15 @@
 		right: 1em;
 		bottom: 1em;
 		overflow-y: scroll;
+
+		&::-webkit-scrollbar
+			background-color: lighten(#121926, 10%);
+			width: 5px;
+
+		&::-webkit-scrollbar-thumb
+			background: #121926;
+			border-radius: 5px;
+
 		li
 			outline: none;
 			min-height: 34px;
@@ -25,9 +34,9 @@
 			padding: 0.6em 1em;
 			margin: 0.5em 0;
 			cursor: pointer;
-			background: lighten($new-background, 5%);
+			background: linear-gradient(165.35deg, #1B2435 0%, #171F2E 100%)
 			&:hover, &.is-active
-				background: lighten($new-background, 10%);
+				background: #384463;
 			.embed-list-name, .embed-list-channel
 				display: block;
 				font-size: 13px;
@@ -54,6 +63,13 @@
 .cc-panel
 	width: 74%;
 
+.cc-add
+	.embed-wrapper
+		margin: 0.5em 0;
+	@media (max-width: 1200px)
+		> .control
+			width: 100% !important;
+
 .cc-input-group
 	display: flex;
 	flex-wrap: wrap;
@@ -63,16 +79,37 @@
 
 .cc-input-group > div
 	width: calc(100% - 0.5em);
-	/* margin-right: 1em; */
+	&.control
+		margin-right: 0.5em;
 
 .cc-input-group.is-2 > div
 	width: calc(50% - 0.5em);
+	&.control
+		margin-right: 0.5em;
+	@media (max-width: 1200px)
+		width: calc(50% - 0.5em);
+		&.control > .control
+			width: 100%;
+	@media (max-width: 769px)
+		width: calc(100% - 0.5em);
 
 .cc-input-group.is-3 > div
 	width: calc(33% - 0.5em);
+	&.control
+		margin-right: 0.5em;
+	@media (max-width: 1200px)
+		width: calc(50% - 0.5em);
+	@media (max-width: 769px)
+		width: calc(100% - 0.5em);
 
 .cc-input-group.is-4 > div
 	width: calc(25% - 0.5em);
+	&.control
+		margin-right: 0.5em;
+	@media (max-width: 1200px)
+		width: calc(50% - 0.5em);
+	@media (max-width: 769px)
+		width: calc(50% - 0.5em);
 
 .cc-response
 	min-height: 8em;
@@ -85,3 +122,6 @@
 .cc-buttons > span
 	display: inline-block;
 	margin-right: 0.5em;
+
+.cc-add-response
+	min-height: 4em;

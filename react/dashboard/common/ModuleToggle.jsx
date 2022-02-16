@@ -28,7 +28,7 @@ export default class ModuleToggle extends React.Component {
 					type="checkbox"
 					checked={this.state.isEnabled} 
 					onChange={this.onChange} />
-				<label className="checkbox" htmlFor={this.props.text}>
+				<label htmlFor={this.props.text}>
 					{this.state.isEnabled ? 'Disable Module' : 'Enable Module'}
 				</label>
 			</div>

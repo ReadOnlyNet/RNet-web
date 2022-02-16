@@ -1,3 +1,4 @@
+/* globals _showSuccess _showError server */
 import axios from 'axios';
 
 export async function updateSetting(setting, value) {
@@ -15,9 +16,15 @@ export async function updateSetting(setting, value) {
 export async function updateNick(nick) {
     const url = '/api/server/' + server + '/updateNick';
     const data = { nick };
+    const options = {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        data,
+        url,
+    };
 
     try {
-        await axios.post(url, data);
+        await axios(options);
         return _showSuccess(`Changed Nickname to ${nick}`);
     } catch (err) {
         return _showError('Something went wrong.');
@@ -51,10 +58,13 @@ export async function updateModuleSetting(module, setting, value, friendlyName, 
             if (!valueName && typeof value === 'object') {
                 return _showSuccess(`Updated ${friendlyName}`);
             }
-            if (value) value = value.substr(0, 35) + '...';
+            if (value && value.toString().length > 35) {
+                value = value.toString().substr(0, 35) + '...';
+            }
             return _showSuccess(`Changed ${friendlyName} to ${valueName || value}`);
         }
     } catch (err) {
+        console.log(err);
         return _showError('Something went wrong.');
     }
 }

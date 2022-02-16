@@ -4,6 +4,7 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Controller = require('../../core/Controller');
 const config = require('../../core/config');
+const logger = require('../../core/logger').get('Autopurge');
 const db = require('../../core/models');
 
 class Autopurge extends Controller {
@@ -42,7 +43,7 @@ class Autopurge extends Controller {
 		if (!guildConfig) {
 			return res.status(500).send('Something went wrong.');
 		}
-		let { interval, channel } = req.body;
+		let { channel, interval, filter } = req.body;
 
 		interval *= 60;
 
@@ -63,12 +64,16 @@ class Autopurge extends Controller {
 				nextPurge: moment().add(interval, 'minutes').toDate(),
 			};
 
+			if (filter) {
+				doc.filter = filter;
+			}
+
 			await db.collection('autopurges').insertOne(doc);
 
 			this.weblog(req, req.params.id, req.session.user, 'Added auto purge.');
 			return res.send('Added auto purge.');
 		} catch (err) {
-			console.error(err);
+			logger.error(err);
 			return res.status(500).send('Something went wrong.');
 		}
 	}

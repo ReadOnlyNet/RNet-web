@@ -18,7 +18,8 @@ export default class Module extends React.Component {
 				description=''
 				disabled={module.isPremium && !this.props.isPremium}
 				defaultValue={module.enabled}
-				helpText={module.description} />
+				helpText={module.description}
+				{...this.props} />
 		);
 	}
 }

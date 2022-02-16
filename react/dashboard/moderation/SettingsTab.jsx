@@ -22,7 +22,7 @@ export default class SettingsTab extends React.Component {
 		isLoading: true,
 	}
 
-	async componentWillMount() {
+	async UNSAFE_componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/moderation`);
 
@@ -57,12 +57,23 @@ export default class SettingsTab extends React.Component {
 		this.setState({ moderation });
 	}
 
+	handleMessage(type, event) {
+		const { moderation } = this.state;
+		moderation[type.key] = event.target.value;
+		this.setState({ moderation });
+	}
+
+	saveMessage(type) {
+		updateModuleSetting(this.props.module, type.key, this.state.moderation[type.key], type.name);
+	}
+
 	render() {
 		if (this.state.isLoading) {
 			return <Loader />;
 		}
 
 		const module = this.props.data.module;
+		const moderation = this.state.moderation;
 		const channels = this.state.channels.filter(c => c.type === 0);
 		const roles = this.state.roles;
 
@@ -71,7 +82,16 @@ export default class SettingsTab extends React.Component {
 		const modRoles = roles.filter(r => this.state.modRoles.includes(r.id));
 		const protectedRoles = roles.filter(r => this.state.protectedRoles.find(i => i.id === r.id));
 
-		return (<div id="moderation-settings">
+		const messageTypes = [
+			{ key: 'banMessage', name: 'Ban Message', defaultValue: '***{user} was banned***' },
+			{ key: 'unbanMessage', name: 'Unban Message', defaultValue: '***{user} was unbanned***' },
+			{ key: 'softbanMessage', name: 'Softban Message', defaultValue: '***{user} was softbanned***' },
+			{ key: 'kickMessage', name: 'Kick Message', defaultValue: '***{user} was kicked***' },
+			{ key: 'muteMessage', name: 'Mute Message', defaultValue: '***{user} was muted***' },
+			{ key: 'unmuteMessage', name: 'Unmute Message', defaultValue: '***{user} was unmuted***' },
+		];
+
+		return (<div id="moderation-settings" className='settings-panel'>
 			<div className='settings-content is-flex'>
 				<SettingCheckbox module={module} setting='dmBans'
 					friendlyName='DM Users'
@@ -87,6 +107,21 @@ export default class SettingsTab extends React.Component {
 					defaultValue={this.state.moderation.respondWithReasons || false}
 					helpText='This will include the reason in the mute/kick/ban message in the chat.'
 					text='Respond with Reason' />
+				<SettingCheckbox module={module} setting='removeRoles'
+					friendlyName='Remove roles when muted'
+					defaultValue={this.state.moderation.removeRoles || false}
+					helpText='This will remove a members roles when they are muted, and give them back when unmuted.'
+					text='Remove roles when muted' />
+				<SettingCheckbox module={module} setting='disableDelete'
+					friendlyName="Preserve messages on ban"
+					defaultValue={this.state.moderation.disableDelete || false}
+					helpText="When this is enabled, a user's messages will not be deleted when they are banned."
+					text='Preserve messages on ban' />
+				<SettingCheckbox module={module} setting='matchEnabled'
+					friendlyName="Enable ban match command"
+					defaultValue={this.state.moderation.matchEnabled || false}
+					helpText="When this is enabled, server managers/admins will be able to use the ban match command in the event of a raid see ban command help for more info."
+					text='Enable ban match command' />
 			</div>
 			<div className='settings-group'>
 				<div className='settings-content is-third'>
@@ -129,6 +164,18 @@ export default class SettingsTab extends React.Component {
 						onChange={this.updateProtectedRoles} />
 				</div>
 			</div>
+			{config.isPremium && (
+				<div className='settings-content is-flex'>
+					<h3 className='title is-5'>Custom Responses</h3>
+					{messageTypes.map(type => (
+						<p key={type.key} className='control message-type'>
+							<label>{type.name}</label>
+							<input className='input' type='text' placeholder={type.defaultValue} value={moderation[type.key]} onChange={this.handleMessage.bind(this, type)} />
+							<a className='button is-info' onClick={this.saveMessage.bind(this, type)}>Update</a>
+						</p>
+					))}
+				</div>
+			)}
 		</div>);
 	}
 }

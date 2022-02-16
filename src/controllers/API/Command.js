@@ -25,6 +25,11 @@ class Command extends Controller {
 				uri: `${basePath}/:group/toggle`,
 				handler: this.toggleGroup.bind(this),
 			},
+			toggleModule: {
+				method: 'post',
+				uri: `${basePath}/module/:module/toggle`,
+				handler: this.toggleModule.bind(this),
+			},
 			updateSettings: {
 				method: 'post',
 				uri: `${basePath}/updateSettings`,
@@ -34,6 +39,11 @@ class Command extends Controller {
 				method: 'post',
 				uri: `${basePath}/:group/updateSettings`,
 				handler: this.updateGroup.bind(this),
+			},
+			updateModule: {
+				method: 'post',
+				uri: `${basePath}/module/:module/updateSettings`,
+				handler: this.updateModule.bind(this),
 			},
 		};
 	}
@@ -61,6 +71,12 @@ class Command extends Controller {
 		}
 
 		const { command } = req.body;
+
+		const cmdOptions = config.commands.find(c => c.name === command);
+
+		if (cmdOptions.noDisable && enabled !== true) {
+			return res.status(500).send('Can\'t disable a core command');
+		}
 
 		guildConfig.commands = guildConfig.commands || {};
 		guildConfig.commands[command] = typeof guildConfig.commands[command] === 'object' ? guildConfig.commands[command] : {};
@@ -94,6 +110,8 @@ class Command extends Controller {
 		commands = commands.filter(c => c.module === req.body.group || c.group === req.body.group);
 
 		for (let command of commands) {
+			if (command.noDisable && command.enabled === true) continue;
+
 			guildConfig.commands = guildConfig.commands || {};
 			guildConfig.commands[command.name] = typeof guildConfig.commands[command.name] === 'object' ? guildConfig.commands[command.name] : {};
 			guildConfig.commands[command.name].enabled = enabled;
@@ -103,6 +121,39 @@ class Command extends Controller {
 			.then(() => {
 				this.weblog(req, req.params.id, req.session.user, `${enabled ? 'Enabled' : 'Disabled'} all ${req.body.group} commands.`);
 				this.log(req.params.id, `Command group ${req.body.group} ${enabled ? 'enabled' : 'disabled'}.`);
+				return res.send('OK');
+			})
+			.catch(err => res.status(500).send(err));
+	}
+
+	async toggleModule(bot, req, res) {
+		if (!req.body) {
+			return res.status(400).send('Invalid request.');
+		}
+		if (!req.body.module) {
+			return res.status(400).send('No command group specified.');
+		}
+
+		const guildConfig = await config.guilds.fetch(req.params.id);
+		if (!guildConfig) {
+			return res.status(500).send('Something went wrong.');
+		}
+
+		const enabled = req.body.enabled;
+		let commands = config.commands;
+
+		commands = commands.filter(c => c.module === req.body.module || c.module === req.body.module);
+
+		for (let command of commands) {
+			guildConfig.commands = guildConfig.commands || {};
+			guildConfig.commands[command.name] = typeof guildConfig.commands[command.name] === 'object' ? guildConfig.commands[command.name] : {};
+			guildConfig.commands[command.name].enabled = enabled;
+		}
+
+		return this.update(req.params.id, { $set: { commands: guildConfig.commands } })
+			.then(() => {
+				this.weblog(req, req.params.id, req.session.user, `${enabled ? 'Enabled' : 'Disabled'} all ${req.body.module} commands.`);
+				this.log(req.params.id, `${req.body.module} commands ${enabled ? 'enabled' : 'disabled'}.`);
 				return res.send('OK');
 			})
 			.catch(err => res.status(500).send(err));
@@ -248,6 +299,64 @@ class Command extends Controller {
 			.then(() => {
 				this.weblog(req, req.params.id, req.session.user, `Updated permissions for all ${group} commands.`)
 				this.log(req.params.id, `Update permissions for all ${group} commands.`);
+				return res.send('OK');
+			})
+			.catch(err => res.status(500).send(err));
+	}
+
+	async updateModule(bot, req, res) {
+		if (!req.body) {
+			return res.status(400).send('Invalid request.');
+		}
+		if (!req.body.module) {
+			return res.status(400).send('Missing required module.');
+		}
+		if (!req.body.settings) {
+			return res.status(400).send('Missing required settings.');
+		}
+
+		const guildConfig = await config.guilds.fetch(req.params.id);
+		if (!guildConfig) {
+			return res.status(500).send('Something went wrong.');
+		}
+
+		const { module, settings } = req.body;
+		let commands = config.commands;
+
+		commands = commands.filter(c => c.module === req.body.module);
+
+		guildConfig.commands = guildConfig.commands || {};
+
+		for (const command of commands) {
+			guildConfig.commands[command.name] = guildConfig.commands[command.name] || {};
+
+			if (typeof guildConfig.commands[command.name] === 'boolean') {
+				guildConfig.commands[command.name] = { enabled: guildConfig.commands[command.name] };
+			}
+
+			const commandSettings = guildConfig.commands[command.name];
+
+			if (commandSettings.hasOwnProperty('allowedChannels') || (settings.allowedChannels && settings.allowedChannels.length)) {
+				guildConfig.commands[command.name].allowedChannels = settings.allowedChannels;
+			}
+
+			if (commandSettings.hasOwnProperty('ignoredChannels') || (settings.ignoredChannels && settings.ignoredChannels.length)) {
+				guildConfig.commands[command.name].ignoredChannels = settings.ignoredChannels;
+			}
+
+			if (commandSettings.hasOwnProperty('allowedRoles') || (settings.allowedRoles && settings.allowedRoles.length)) {
+				guildConfig.commands[command.name].allowedRoles = settings.allowedRoles;
+			}
+
+			if (commandSettings.hasOwnProperty('ignoredRoles') || (settings.ignoredRoles && settings.ignoredRoles.length)) {
+				guildConfig.commands[command.name].ignoredRoles = settings.ignoredRoles;
+			}
+		}
+
+		return this.update(req.params.id, { $set: { commands: guildConfig.commands } })
+			.then(() => {
+				this.weblog(req, req.params.id, req.session.user, `Updated permissions for all ${module} commands.`)
+				this.log(req.params.id, `Update permissions for all ${module} commands.`);
 				return res.send('OK');
 			})
 			.catch(err => res.status(500).send(err));

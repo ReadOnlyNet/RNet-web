@@ -8,29 +8,38 @@ import { updateModuleSetting } from '../service/dashboardService.js';
 
 export default class BannedWords extends React.Component {
 	state = {
-		automod: {},
 		formData: {
 			type: 'badwords',
 			value: '',
 		},
+		badwords: [],
+		exactwords: [],
 	}
 
 	componentDidMount() {
-		this.setState({ automod: this.props.automod || {} });
+		this.setState({ exactwords: this.props.automod.exactwords, badwords: this.props.automod.badwords });
 	}
 
-	componentWillReceiveProps(props) {
-		this.setState({ automod: props.automod || {} });
+	UNSAFE_componentWillReceiveProps(props) {
+		this.setState({ exactwords: this.props.automod.exactwords, badwords: this.props.automod.badwords });
 	}
 
 	deleteWord = async (key, word) => {
-		let words = this.state.automod[key];
-		const index = words.findIndex(w => w === word);
-		if (index !== -1) {
-			words.splice(index, 1);
-			await this.setState({ words });
-			updateModuleSetting(this.props.data.module, key, words, 'Banned Words');
-		}
+		let words = this.state[key];
+		words = words.filter(w => w !== word);
+		const stateUpdate = {};
+		stateUpdate[key] = words;
+		await this.setState(stateUpdate);
+		updateModuleSetting(this.props.data.module, key, words, 'Banned Words');
+	}
+
+	deleteAllWords = async (key) => {
+		const areYouSureBro = confirm('This action is IRREVERSIBLE, do you really wish to delete all banned words in this group?');
+		if(!areYouSureBro) return;
+		const stateUpdate = {};
+		stateUpdate[key] = [];
+		await updateModuleSetting(this.props.data.module, key, [], 'Banned Words');
+		await this.setState(stateUpdate);
 	}
 
 	setWords = (event) => {
@@ -46,10 +55,12 @@ export default class BannedWords extends React.Component {
 	}
 
 	addWords = async () => {
-		const { automod, formData } = this.state;
-		const values = automod[formData.type] || [];
+		const { formData } = this.state;
+		let values = this.state[formData.type] || [];
 
-		automod[formData.type] = values.concat(formData.value.replace(', ', ',').split(','));
+		const newWords = formData.value.replace(', ', ',').split(',');
+		values = values.concat(newWords);
+		values = [...(new Set(values)).values()];
 
 		try {
 			await updateBadWords(this.props.data.module, formData.type, formData.value);
@@ -58,11 +69,13 @@ export default class BannedWords extends React.Component {
 		}
 
 		formData.value = '';
-		this.setState({ automod, formData });
+		const stateUpdate = { formData };
+		stateUpdate[formData.type] = values;
+		this.setState(stateUpdate);
 	}
 
 	render() {
-		const { badwords, exactwords } = this.state.automod;
+		const { badwords, exactwords } = this.state;
 
 		const WildTags = badwords && badwords.map(word => (
 			<span key={word} className='tag-wrap'>
@@ -70,7 +83,8 @@ export default class BannedWords extends React.Component {
 					{word}
 					<button className='delete' onClick={this.deleteWord.bind(this, 'badwords', word)}></button>
 				</span>
-			</span>));
+			</span>
+		));
 
 		const ExactTags = exactwords && exactwords.map(word => (
 			<span key={word} className='tag-wrap'>
@@ -78,9 +92,16 @@ export default class BannedWords extends React.Component {
 					{word}
 					<button className='delete' onClick={this.deleteWord.bind(this, 'exactwords', word)}></button>
 				</span>
-			</span>));
+			</span>
+		));
 
-		return (<div className='automod-settings'>
+		const GlobalTags = config.globalwords && config.globalwords.map(word => (
+			<span key={word} className='tag-wrap'>
+				<span className='tag'>{word}</span>
+			</span>
+		));
+
+		return (<div className='automod-settings' className='settings-panel'>
 			<div className='settings-content'>
 				<h3 className='title is-5'>Add Banned Words</h3>
 				<div className='module-multitext'>
@@ -103,14 +124,34 @@ export default class BannedWords extends React.Component {
 					<input className='button is-info' type='button' value='Update' onClick={this.addWords} />
 				</div>
 			</div>
+			{!this.props.automod.disableGlobal && (
+				<div className='settings-content'>
+					<h3 className='title is-5'>Default Banned Words</h3>
+					{config.globalwords && config.globalwords.length ?
+						(<div className='tag-group'>{GlobalTags}</div>) :
+						(<p>There are no words in this list.</p>)}
+				</div>
+			)}
 			<div className='settings-content'>
-				<h3 className='title is-5'>Banned Words (wildcard)</h3>
+				<h3 className='title is-5 is-flex'>
+					Banned Words (wildcard)
+					<a className='delete-btn-fade-text' onClick={() => this.deleteAllWords('badwords')}>
+						<i className="far fa-trash fa-lg"></i>
+						<span className="hidden-text">Delete All</span>
+					</a>
+				</h3>
 				{badwords && badwords.length ?
 					(<div className='tag-group'>{WildTags}</div>) :
 					(<p>There are no words in this list.</p>)}
 			</div>
 			<div className='settings-content'>
-				<h3 className='title is-5'>Banned Words (exact)</h3>
+				<h3 className='title is-5 is-flex'>
+					Banned Words (exact)
+					<a className='delete-btn-fade-text' onClick={() => this.deleteAllWords('exactwords')}>
+						<i className="far fa-trash fa-lg"></i>
+						<span className="hidden-text">Delete All</span>
+					</a>
+				</h3>
 				{exactwords && exactwords.length ?
 					(<div className='tag-group'>{ExactTags}</div>) :
 					(<p>There are no words in this list.</p>)}

@@ -1,12 +1,10 @@
 import React from 'react';
 import axios from 'axios';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import Loader from '../common/Loader.jsx';
-import FeatureLocker from '../common/FeatureLocker.jsx';
 import MessageEmbed from './MessageEmbed.jsx';
 import ModuleSettings from '../common/ModuleSettings.jsx';
 
-export default class MessageEmbedder extends ModuleSettings {
+export default class MessageEmbedder extends React.Component {
 	state = {
 		messages: [],
 		channels: [],
@@ -14,9 +12,11 @@ export default class MessageEmbedder extends ModuleSettings {
 		isLoading: true,
 		isOpen: false,
 		index: 0,
+		clonedMessage: false,
+		debug: false,
 	};
 
-	async componentWillMount() {
+	async UNSAFE_componentWillMount() {
 		try {
 			let response = await axios.get(`/api/modules/${this.props.match.params.id}/messageEmbeds`);
 
@@ -24,6 +24,7 @@ export default class MessageEmbedder extends ModuleSettings {
 				messages: response.data.messages,
 				channels: response.data.channels,
 				roles: response.data.roles,
+				debug: response.data.debug || false,
 				isLoading: false,
 			});
 		} catch (e) {
@@ -38,7 +39,7 @@ export default class MessageEmbedder extends ModuleSettings {
 	}
 
 	selectEmbed = (index) => {
-		this.setState({ index, isOpen: false });
+		this.setState({ index, isOpen: false, clonedMessage: false });
 	}
 
 	onSave = (message) => {
@@ -53,7 +54,7 @@ export default class MessageEmbedder extends ModuleSettings {
 			index = messages.length - 1;
 		}
 
-		this.setState({ index: index + 1, messages });
+		this.setState({ index: index + 1, messages, clonedMessage: false });
 	}
 
 	onDelete = (message) => {
@@ -65,18 +66,23 @@ export default class MessageEmbedder extends ModuleSettings {
 			messages.splice(index, 1);
 		}
 
-		this.setState({ index: 0, messages });
+		this.setState({ index: 0, messages, clonedMessage: false });
 	}
 
 	onCancel = () => {
-		this.setState({ index: 0 });
+		this.setState({ index: 0, clonedMessage: false });
+	}
+
+	onClone = (message) => {
+		const msg = { embed: message.embed };
+		this.setState({ index: 0, clonedMessage: msg });
+	}
+
+	getClonedMessage = () => {
+		return this.state.clonedMessage || false;
 	}
 
 	render() {
-		if (this.state.isLoading) {
-			return <Loader />;
-		}
-
 		let { messages, channels, roles } = this.state;
 
 		const mappedMessages = [...messages].map(m => {
@@ -87,11 +93,9 @@ export default class MessageEmbedder extends ModuleSettings {
 
 		const selectedMessage = mappedMessages[this.state.index - 1];
 
-		return (
-			<FeatureLocker isLocked={!this.props.data.isPremium}>
-				<div id='module-messageembedder' className='module-content module-settings'>
-					<h3 className='title is-4'>Message Embedder {this.ModuleToggle}</h3>
-					<Tabs className='cc-tabs' selectedTabClassName='is-active' selectedTabPanelClassName='is-active' onSelect={this.selectEmbed}>
+		return (<ModuleSettings {...this.props} name='messageembedder' title='Message Embedder' isLoading={this.state.isLoading} featureLocker={true}>
+				<div className='settings-panel'>
+					<Tabs className='cc-tabs' selectedTabClassName='is-active' selectedTabPanelClassName='is-active' selectedIndex={this.state.index} onSelect={this.selectEmbed}>
 						<div className='cc-list'>
 							<div className={`mobile ${this.state.isOpen ? 'opened' : ''} ${this.state.index === 0 ? 'default' : ''}`}>
 								<ul className='dropdown'>
@@ -130,25 +134,31 @@ export default class MessageEmbedder extends ModuleSettings {
 						</div>
 						<div className='cc-panel'>
 							<TabPanel>
-								<MessageEmbed {...this.props}
-									channels={channels}
-									roles={roles}
-									onSave={this.onSave}
-									onCancel={this.onCancel} />
+							<MessageEmbed {...this.props}
+								channels={channels}
+								roles={roles}
+								onSave={this.onSave}
+								onCancel={this.onCancel}
+								getCloned={this.getClonedMessage}
+								onClone={this.onClone}
+								debug={this.state.debug || false} />
 							</TabPanel>
 							{mappedMessages.map(m => (
 								<TabPanel key={m._id}>
 									<MessageEmbed {...this.props}
 										channels={channels}
+										roles={roles}
 										message={m}
 										onSave={this.onSave}
-										onDelete={this.onDelete} />
+										onDelete={this.onDelete}
+										onClone={this.onClone}
+										debug={this.state.debug || false} />
 								</TabPanel>
 							))}
 						</div>
 					</Tabs>
 				</div>
-			</FeatureLocker>
+			</ModuleSettings>
 		);
 	}
 }

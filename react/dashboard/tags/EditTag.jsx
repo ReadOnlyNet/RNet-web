@@ -25,7 +25,7 @@ export default class EditTag extends React.Component {
         });
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setState({
             name: nextProps.name,
             value: nextProps.value
@@ -80,11 +80,10 @@ export default class EditTag extends React.Component {
         const nameClass = this.state.nameChars >= 72 ? "over2k" : "";
         return (
             <div className="edit-tag-modal">
-                <div className="modal-background"></div>
-                <div className="modal-content">
+                {/* <div className="modal-background"></div> */}
+                <div className="settings-content">
                     <label className="label">Tag - <span className={nameClass}>{this.state.nameChars}</span> Character{this.state.nameChars == 1 ? '' : 's'}</label>
-                    <p className="control has-addons">
-                        <label className="label">{this.props.prefix}</label>
+                    <p className="control">
                         <input className="input" name="tag" type="text" disabled="disabled" defaultValue={this.props.name} pattern="[a-zA-Z0-9\-\_\+]" title="Tag name should start with an alpha character and only contain alphanumeric characters and -_+" maxLength="72" />
                     </p>
                     <p className="control">

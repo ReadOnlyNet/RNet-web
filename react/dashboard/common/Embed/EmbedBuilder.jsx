@@ -57,15 +57,21 @@ export default class EmbedBuilder extends React.Component {
 		return `${fn()}-${fn()}`;
 	}
 
-	componentWillMount() {
+	UNSAFE_componentWillMount() {
 		if (this.props.embed) {
 			this.setBuilder(this.props.embed);
 		}
 	}
 
-	componentWillReceiveProps(props) {
-		if (props.embed) {
-			this.setBuilder(props.embed);
+	UNSAFE_componentWillReceiveProps(props) {
+		let embed = props.embed;
+
+		if (embed === -1) {
+			embed = this.defaultBuilder;
+		}
+
+		if (embed) {
+			this.setBuilder(embed);
 		}
 	}
 
@@ -96,7 +102,7 @@ export default class EmbedBuilder extends React.Component {
 	}
 
 	replaceChannelMentions(content) {
-		const channelMentions = parseChannelMentions(content, this.props.roles);
+		const channelMentions = parseChannelMentions(content, this.props.channels);
 		for (let [key, value] of channelMentions) {
 			if (key.startsWith('#')) {
 				const regex = `(#${value.name})(?!<\\/a>)`;
@@ -343,6 +349,12 @@ export default class EmbedBuilder extends React.Component {
 		}
 	}
 
+	handleClone = () => {
+		if (this.props.onClone) {
+			this.props.onClone();
+		}
+	}
+
 	openErrorModal = (error) => {
 		if (error) {
 			this.setState({ errorMessage: error, isErrorOpen: true });
@@ -391,13 +403,25 @@ export default class EmbedBuilder extends React.Component {
             modal: 'help-modal',
 		};
 
+		const showIcon = (
+			<span className='icon is-link'>
+				<i className='fa fa-plus-circle'></i>
+			</span>
+		);
+
+		const hideIcon = (
+			<span className='icon is-link'>
+				<i className='fa fa-minus-circle'></i>
+			</span>
+		);
+
 		return (
 			<div className='embed-builder'>
 				<div className='embed-builder-controls'>
 					<label>* All fields are optional</label>
 					<p className='control'>
 						<label className='label'>Color</label>
-						<a className='button' onClick={this.toggleColorPicker}>Choose Color</a>
+						<a className='button is-info' onClick={this.toggleColorPicker}>Choose Color</a>
 						<span className='builder-color-preview' style={colorStyle} onClick={this.toggleColorPicker}></span>
 					</p>
 					{ this.state.displayColorPicker ? <div style={popover}>
@@ -438,8 +462,8 @@ export default class EmbedBuilder extends React.Component {
 					</p>
 
 					<fieldset className='control-group-toggle' onClick={this.toggleSetting.bind(this, 'author')}>
-						<legend align='center'>
-							{this.state.settingsOpen.author ? 'Hide' : 'Add'} Author
+						<legend>
+							{this.state.settingsOpen.author ? hideIcon : showIcon} Author
 						</legend>
 					</fieldset>
 					{this.state.settingsOpen.author && (
@@ -466,8 +490,8 @@ export default class EmbedBuilder extends React.Component {
 						</div>)}
 
 					<fieldset className='control-group-toggle' onClick={this.toggleSetting.bind(this, 'image')}>
-						<legend align='center'>
-							{this.state.settingsOpen.image ? 'Hide' : 'Add'} Image/Thumb
+						<legend>
+							{this.state.settingsOpen.image ? hideIcon : showIcon} Image/Thumb
 						</legend>
 					</fieldset>
 					{this.state.settingsOpen.image && (
@@ -495,8 +519,8 @@ export default class EmbedBuilder extends React.Component {
 						</div>)}
 
 					<fieldset className='control-group-toggle' onClick={this.toggleSetting.bind(this, 'footer')}>
-						<legend align='center'>
-							{this.state.settingsOpen.footer ? 'Hide' : 'Add'} Footer
+						<legend>
+							{this.state.settingsOpen.footer ? hideIcon : showIcon} Footer
 						</legend>
 					</fieldset>
 					{this.state.settingsOpen.footer && (
@@ -523,13 +547,13 @@ export default class EmbedBuilder extends React.Component {
 						</div>)}
 
 					<fieldset className='control-group-toggle' onClick={this.toggleSetting.bind(this, 'fields')}>
-						<legend align='center'>
-							{this.state.settingsOpen.fields ? 'Hide' : 'Add'} Fields
+						<legend>
+							{this.state.settingsOpen.fields ? hideIcon : showIcon} Fields
 						</legend>
 					</fieldset>
 					{this.state.settingsOpen.fields && builder.fields && builder.fields.length ? (
 						builder.fields.map(field => (
-							<div key={field.id} className='control-group'>
+							<div key={field.id} className='control-group field-group'>
 								<p className='control'>
 									<input className='input is-expanded'
 										type='text'
@@ -537,13 +561,15 @@ export default class EmbedBuilder extends React.Component {
 										value={field.name || ''}
 										onChange={this.handleField.bind(this, field, 'name')} />
 								</p>
-								<p className='control has-addons'>
+								<p className='control'>
 									<textarea className='input is-expanded builder-field'
 										cols='10'
 										rows='1'
 										placeholder='Value'
 										value={field.value || ''}
 										onChange={this.handleField.bind(this, field, 'value')}></textarea>
+								</p>
+								<p className='control'>
 									<input id={field.id} type='checkbox' checked={field.inline || false} onChange={this.handleField.bind(this, field, 'inline')} />
 									<label className='label' htmlFor={field.id}>Inline</label>
 								</p>
@@ -556,12 +582,15 @@ export default class EmbedBuilder extends React.Component {
 					)}
 				</div>
 				<div className='embed-builder-controls'>
-					<a className='button is-info' onClick={this.handleSave}>Save & Send</a>
+					<a className='button is-info' onClick={this.handleSave}>{this.props.saveText || 'Save & Send'}</a>
 					{this.props.cancelButton && (
-						<a className='button is-danger' onClick={this.handleCancel}>Cancel</a>
+						<a className='button is-danger is-outlined is-rounded' onClick={this.handleCancel}>Cancel</a>
 					)}
 					{this.props.deleteButton && (
-						<a className='button is-danger' onClick={this.handleDelete}>Delete</a>
+						<a className='button is-danger is-outlined is-rounded' onClick={this.handleDelete}>Delete</a>
+					)}
+					{this.props.cloneButton && (
+						<a className='button is-info' style={{ marginLeft: '0.5em' }} onClick={this.handleClone}>Clone</a>
 					)}
 				</div>
 				<label className='label'>Preview</label>

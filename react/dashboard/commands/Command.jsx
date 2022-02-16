@@ -24,7 +24,7 @@ export default class Command extends React.Component {
 				text={text}
 				onChange={this.props.onToggle}
 				description={description}
-				disabled={command.noDisable}
+				disabled={command.noDisable && command.enabled}
 				defaultValue={command.enabled}
 				helpText={description}
 				{...this.props}

@@ -10,7 +10,7 @@ export default class RichSelect extends React.Component {
 		hasChanged: false,
 	}
 
-	componentWillMount() {
+	UNSAFE_componentWillMount() {
 		let { selectedOption, hasChanged } = this.state;
 		if (hasChanged) {
 			return;
@@ -22,7 +22,7 @@ export default class RichSelect extends React.Component {
 		this.setState({ selectedOption });
 	}
 
-	componentWillReceiveProps(props) {
+	UNSAFE_componentWillReceiveProps(props) {
 		let { selectedOption, hasChanged } = this.state;
 		if (hasChanged) {
 			return;
@@ -53,15 +53,15 @@ export default class RichSelect extends React.Component {
 			<div className='control rich-select'>
 				<label className='label'>
 					{!this.props.hideLabel && (<label className='label'>{this.props.text}{this.props.helpText && (<Help text={this.props.helpText} />)}</label>)}
-					<Select
-						value={value}
-						placeholder={this.props.defaultOption}
-						disabled={this.props.disabled}
-						onChange={this.handleChange}
-						clearable={true}
-						searchable={true}
-						options={options} />
 				</label>
+				<Select
+					value={value}
+					placeholder={this.props.defaultOption}
+					disabled={this.props.disabled}
+					onChange={this.handleChange}
+					clearable={this.props.clearable || true}
+					searchable={this.props.searchable || true}
+					options={options} />
 			</div>
 		);
 	}

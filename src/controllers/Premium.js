@@ -3,7 +3,7 @@
 const superagent = require('superagent');
 const Controller = require('../core/Controller');
 const config = require('../core/config');
-const logger = require('../core/logger');
+const logger = require('../core/logger').get('Premium');
 const utils = require('../core/utils');
 
 const perms = config.permissions;
@@ -13,7 +13,7 @@ const redirect_base = (!config.premium.site.port || parseInt(config.premium.site
 	`${config.premium.site.host}:${config.premium.site.port}`;
 
 const authUrl = `https://discordapp.com/oauth2/authorize?redirect_uri=${redirect_base}%2Fvip%2Freturn` +
-	`&scope=identify guilds&response_type=code&client_id=${config.premium.client.id}`;
+	`&scope=identify guilds&response_type=code&prompt=none&client_id=${config.premium.client.id}`;
 const tokenUrl = 'https://discordapp.com/api/oauth2/token';
 
 class Premium extends Controller {
@@ -82,7 +82,7 @@ class Premium extends Controller {
 
 			delete req.session.authServer;
 
-			const guild = await this.client.guild.getGuild(authServer);
+			const guild = await this.client.getRESTGuild(authServer);
 			if (guild) {
 				return res.redirect(redirectTo);
 			}
